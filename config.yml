@@ -1,2 +1,5 @@
-readsFilePath: "../../Data/454/454.fasta"
-HaplotypesFilePAth: ""
+reads_file_path: "../Data/454/454.fasta"
+name: "HIV_CAD"
+save: True
+load: False
+haplotypesFilePAth: ""

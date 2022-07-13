@@ -4,6 +4,9 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import tensorflow as tf
 
+import hot_one
+
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
@@ -11,6 +14,7 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    hot_one_encoded_reads = hot_one.encode_hot_one()
     print_hi('PyCharm')
     print(tf.__version__)
 
