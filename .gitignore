@@ -1,2 +1,6 @@
 # results
 results/
+
+.idea/
+
+__pycache__/
