@@ -1,6 +1,8 @@
+from os.path import exists
 from random import randint, shuffle
 
 import numpy as np
+import tensorflow as tf
 import yaml
 
 import one_hot
@@ -9,6 +11,9 @@ with open("./config.yml", "r") as ymlfile:
     config = yaml.safe_load(ymlfile)
 
 
+# TODO add sequencing error (randomly remove or change base) (according to 454 error)
+
+# cut original haplotype in reads of certain length, creating at least amount reads
 def cut_into_reads(rna, length, amount):
     rna_reads = []
     while amount > len(rna_reads):
@@ -24,27 +29,34 @@ def cut_into_reads(rna, length, amount):
     return rna_reads
 
 
+# create reads from existing haplotype
 def create_reads():
     number_of_strains = config['number_of_strains']
     min_number_of_reads_per_strain = config['min_number_of_reads_per_strain']
     read_length = config['read_length']
+    path_to_results_file = './results/' + config['name'] + '_created_' + str(number_of_strains) + '_' + str(
+        read_length) + '_' + str(min_number_of_reads_per_strain)
+
+    # load if exists
+    if config['load'] and exists(path_to_results_file + '.npy'):
+        print('loading file...')
+        return np.load(path_to_results_file + '.npy')
+
+    # read original haplotype
     f = open(config['haplotype_file_path'], 'r')
     reads = []
     for _ in range(number_of_strains):
         print("Creating reads from strain:", (f.readline())[1:])
         rna = f.readline()[:-1]
+        # create reads
         reads.extend(cut_into_reads(rna, read_length, min_number_of_reads_per_strain))
-    print(reads)
     shuffle(reads)
-    print(reads)
-    one_hot_encoded_reads = [one_hot.encode_read(read) for read in reads]
-    print(one_hot_encoded_reads)
+    # one hot encoding and convert list to tensor
+    one_hot_encoded_reads = tf.convert_to_tensor([one_hot.encode_read(read, len(rna)) for read in reads])
+
+    # save
     if config['save']:
         print('saving file...')
-        np.save(
-            './results/' + config['name'] + 'created_' + str(number_of_strains) + '_' + str(read_length) + '_' + str(
-                len(reads)),
-            one_hot_encoded_reads)
-        print('file saved')
-        
-# TODO add sequencing error (randomly remove or change base) (according to 454 error)
+        np.save(path_to_results_file, one_hot_encoded_reads)
+
+    return one_hot_encoded_reads
