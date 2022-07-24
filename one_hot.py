@@ -43,6 +43,7 @@ def encode():
     one_hot_encoded_reads = []
 
     # read file line by line and one hot encode reads
+    print("reading and encoding data...")
     with open(config['reads_file_path']) as file:
         for line in file:
             if is_read_line:
@@ -55,7 +56,7 @@ def encode():
                 continue
 
     # convert to tensor
-    one_hot_encoded_reads_tensor = tf.convert_to_tensor(one_hot_encoded_reads)
+    one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
 
     # save
     if config['save']:

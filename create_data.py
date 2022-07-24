@@ -51,8 +51,10 @@ def create_reads():
         # create reads
         reads.extend(cut_into_reads(rna, read_length, min_number_of_reads_per_strain))
     shuffle(reads)
-    # one hot encoding and convert list to tensor
-    one_hot_encoded_reads = tf.convert_to_tensor([one_hot.encode_read(read, len(rna)) for read in reads])
+    # one hot encoding, convert list to tensor
+    # and add dimension (needed for conv2D in tensorflow shape(x,y) -> shape(x,y,1))
+    one_hot_encoded_reads = tf.expand_dims(
+        tf.convert_to_tensor([one_hot.encode_read(read, len(rna)) for read in reads]), axis=3)
 
     # save
     if config['save']:
