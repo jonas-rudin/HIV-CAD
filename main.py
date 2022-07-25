@@ -27,12 +27,17 @@ if __name__ == '__main__':
     autoencoder = Autoencoder(data.shape[1:])
 
     autoencoder.compile(optimizer="adam", loss=tf.keras.losses.MeanSquaredError())
-
+    autoencoder.build(input_shape=(data.shape))
     autoencoder.fit(x=data, y=data,
-                    epochs=1,
+                    epochs=2,
                     batch_size=batch_size,
                     shuffle=True,
                     verbose=1)
+    autoencoder.encoder.summary()
+    autoencoder.decoder.summary()
     autoencoder.summary()
+    output = autoencoder.predict(x=tf.expand_dims(data[0], axis=0))
+    print(data[0][0][3][0])
+    print(output[0][3][0])
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

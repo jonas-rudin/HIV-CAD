@@ -10,6 +10,6 @@ real_data: True
 max_read_length: 1006
 
 # create Data
-number_of_strains: 1 # [1...5]
+number_of_strains: 2 # [1...5]
 read_length: 20
 min_number_of_reads_per_strain: 1000
