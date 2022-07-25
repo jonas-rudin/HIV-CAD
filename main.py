@@ -25,9 +25,8 @@ if __name__ == '__main__':
         data = create_data.create_reads()
     batch_size = int(np.ceil(data.shape[0] / 20))
     autoencoder = Autoencoder(data.shape[1:])
-    opt = tf.keras.optimizers.Adam(learning_rate=0.01)
 
-    autoencoder.compile(optimizer=opt, loss=tf.keras.losses.MeanSquaredError())
+    autoencoder.compile(optimizer="adam", loss=tf.keras.losses.MeanSquaredError())
 
     autoencoder.fit(x=data, y=data,
                     epochs=1,
