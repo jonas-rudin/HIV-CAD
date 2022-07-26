@@ -6,10 +6,11 @@ haplotype_file_path: "../Data/reference/REF_fake.fasta"
 name: "HIV_CAD"
 save: True
 load: True
-real_data: True
+real_data: False
 max_read_length: 1006
+max_created_read_length: 90
 
 # create Data
 number_of_strains: 2 # [1...5]
-read_length: 20
-min_number_of_reads_per_strain: 1000
+read_length: 10
+min_number_of_reads_per_strain: 100000
