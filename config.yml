@@ -13,4 +13,4 @@ max_created_read_length: 90
 # create Data
 number_of_strains: 2 # [1...5]
 read_length: 10
-min_number_of_reads_per_strain: 100000
+min_number_of_reads_per_strain: 1000

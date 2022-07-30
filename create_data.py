@@ -19,7 +19,8 @@ bases = ['A', 'C', 'G', 'T']
 def add_error(read):
     i = 0
     while i < (len(read)):
-        if uniform(0, 1) < 1:  # 0.0049:
+        if uniform(0, 1) < 0.0049:
+            # if random base = base -> remove base from read
             replacement_base = choice(bases)
             if read[i] == replacement_base:
                 read = read[:i] + read[i + 1:]

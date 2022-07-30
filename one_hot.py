@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import yaml
 
-with open("./config.yml", "r") as ymlfile:
+with open('./config.yml', 'r') as ymlfile:
     config = yaml.safe_load(ymlfile)
 
 
@@ -27,7 +27,7 @@ def encode_read(read, length):
     switched_read.extend(-1. for _ in range(length - len(switched_read)))
     switched_read_tensor = tf.cast(switched_read, tf.int32)
     # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
-    one_hot_read = tf.transpose(tf.one_hot(switched_read_tensor, depth=4))
+    one_hot_read = tf.one_hot(switched_read_tensor, depth=4)
     return one_hot_read
 
 
@@ -43,12 +43,12 @@ def encode():
     one_hot_encoded_reads = []
 
     # read file line by line and one hot encode reads
-    print("reading and encoding data...")
+    print('reading and encoding data...')
     with open(config['reads_file_path']) as file:
         for line in file:
             if is_read_line:
                 read = line[:-1]
-                one_hot_encoded_read = encode_read(read, config["max_read_length"])
+                one_hot_encoded_read = encode_read(read, config['max_read_length'])
                 one_hot_encoded_reads.append(one_hot_encoded_read)
                 is_read_line = False
             else:
@@ -67,4 +67,4 @@ def encode():
 
 
 def decode():
-    return "Not yet implemented"
+    return 'Not yet implemented'
