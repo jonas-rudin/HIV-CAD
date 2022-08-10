@@ -1,3 +1,4 @@
+import json
 from os.path import exists
 from random import randint, shuffle, uniform, choice
 
@@ -53,13 +54,20 @@ def create_reads():
     number_of_strains = config['number_of_strains']
     min_number_of_reads_per_strain = config['min_number_of_reads_per_strain']
     read_length = config['read_length']
-    path_to_results_file = './results/' + config['name'] + '_created_' + str(number_of_strains) + '_' + str(
+    path_to_result_file_one_hot = './results/' + config['name'] + '_created_one_hot_encoded_reads_' + str(
+        number_of_strains) + '_' + str(
         read_length) + '_' + str(min_number_of_reads_per_strain)
+    path_to_result_file_reads = './results/' + config['name'] + '_created_reads_' + str(number_of_strains) + '_' + str(
+        read_length) + '_' + str(min_number_of_reads_per_strain) + '.json'
 
     # load if exists
-    if config['load'] and exists(path_to_results_file + '.npy'):
-        print('loading file...')
-        return np.load(path_to_results_file + '.npy')
+    if config['load'] and exists(path_to_result_file_one_hot + '.npy') and exists(
+            path_to_result_file_reads):
+        print('loading files...')
+        one_hot_encoded_reads = np.load(path_to_result_file_one_hot + '.npy')
+        with open(path_to_result_file_reads, "r") as json_file:
+            reads = json.load(json_file)
+        return one_hot_encoded_reads, reads
 
     # read original haplotype
     f = open(config['haplotype_file_path'], 'r')
@@ -76,7 +84,9 @@ def create_reads():
 
     # save
     if config['save']:
-        print('saving file...')
-        np.save(path_to_results_file, one_hot_encoded_reads)
+        print('saving files...')
+        np.save(path_to_result_file_one_hot, one_hot_encoded_reads)
+        with open(path_to_result_file_reads + ".json", "w") as json_file:
+            json.dump(reads, json_file)
 
-    return one_hot_encoded_reads
+    return one_hot_encoded_reads, reads

@@ -8,6 +8,7 @@ from tensorflow.python.keras import Model
 
 import create_data
 import one_hot
+from helpers.align_sequences import align_sequences
 from helpers.colors_coding import ColorCoding
 from models.autoencoder import Autoencoder
 from models.layers.cluster import ClusteringLayer
@@ -21,36 +22,36 @@ if __name__ == '__main__':
     print('Tensorflow version: {}'.format(tf.__version__))
     if config['real_data']:
         print(f'Working with {ColorCoding.OKGREEN}454{ColorCoding.ENDC} reads')
-        data = one_hot.encode()
-        batch_size = int(np.ceil(data.shape[0] / 200))
+        one_hot_encoded_reads, reads = one_hot.encode()
+        batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / 200))
 
     else:
         print(
             f'Working with {ColorCoding.OKBLUE}created{ColorCoding.ENDC} reads')
-        data = create_data.create_reads()
-        batch_size = int(np.ceil(data.shape[0] / 2))
+        one_hot_encoded_reads, reads = create_data.create_reads()
+        batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / 2))
 
     # get
     n_clusters = config['n_clusters']
     verbose = config['verbose']
-    
+
     # print("1", data[0])
     # print("2", data[0][0])
     # print("3", data[0][0][0])
     # print("4", data[0][0][0][0])
 
     # create autoencoder
-    autoencoder = Autoencoder(data.shape[1:])
+    autoencoder = Autoencoder(one_hot_encoded_reads.shape[1:])
 
     autoencoder.compile(optimizer='adam', loss=tf.keras.losses.MeanSquaredError())
-    autoencoder.build(input_shape=data.shape)
+    autoencoder.build(input_shape=one_hot_encoded_reads.shape)
     autoencoder.encoder.summary()
     autoencoder.decoder.summary()
     autoencoder.summary()
-    print(data.shape)
+    print(one_hot_encoded_reads.shape)
 
     # train autoencoder
-    autoencoder.fit(x=data, y=data,
+    autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
                     epochs=100,
                     batch_size=batch_size,
                     shuffle=False,
@@ -62,14 +63,14 @@ if __name__ == '__main__':
 
     # train k-means
     kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=verbose)
-    y_pred_kmeans = kmeans.fit_predict(cluster_model.predict(data))
-
+    pred_kmeans = kmeans.fit_predict(cluster_model.predict(one_hot_encoded_reads))
+    align_sequences()
     # Todo MEC stuff and rebuild + evaluate
-    output_cluster = cluster_model.predict(x=tf.expand_dims(data[0], axis=0))
-    output_encoder = autoencoder.predict(x=tf.expand_dims(data[0], axis=0))
+    output_cluster = cluster_model.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
+    output_encoder = autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
     print("output_cluster", output_cluster)
     print("evaluate")
-    autoencoder.evaluate(x=data, y=data, verbose=verbose)
+    autoencoder.evaluate(x=one_hot_encoded_reads, y=one_hot_encoded_reads, verbose=verbose)
 
     if config['save']:
         if config['real_data']:
@@ -79,5 +80,5 @@ if __name__ == '__main__':
                 './results/models/created_weights_' + str(config['number_of_strains']) + '_' + str(
                     config['read_length']) + '_' + str(config['min_number_of_reads_per_strain']))
 
-    print(data[0].shape)
+    print(one_hot_encoded_reads[0].shape)
     print(tf.squeeze(output_encoder, [0]).shape)

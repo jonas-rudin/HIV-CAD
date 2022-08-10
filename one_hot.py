@@ -1,3 +1,4 @@
+import json
 from os.path import exists
 
 import numpy as np
@@ -32,11 +33,15 @@ def encode_read(read, length):
 
 
 def encode():
-    path_to_result_file = './results/' + config['name']
+    path_to_result_file_one_hot = './results/' + config['name'] + "_one_hot"
+    path_to_result_file_reads = './results/' + config['name'] + "_reads.json"
     # check if file already exists and use it if that is the case
-    if config['load'] and exists(path_to_result_file + '.npy'):
-        print('loading file...')
-        return np.load(path_to_result_file + '.npy')
+    if config['load'] and exists(path_to_result_file_one_hot + '.npy') and exists(path_to_result_file_reads):
+        print('loading files...')
+        one_hot_encoded_reads_tensor = np.load(path_to_result_file_one_hot + '.npy')
+        with open(path_to_result_file_reads, "r") as json_file:
+            reads = json.load(json_file)
+        return one_hot_encoded_reads_tensor, reads
 
     # read reads
     is_read_line = False
@@ -44,10 +49,12 @@ def encode():
 
     # read file line by line and one hot encode reads
     print('reading and encoding data...')
+    reads = []
     with open(config['reads_file_path']) as file:
         for line in file:
             if is_read_line:
                 read = line[:-1]
+                reads.append(read)
                 one_hot_encoded_read = encode_read(read, config['max_read_length'])
                 one_hot_encoded_reads.append(one_hot_encoded_read)
                 is_read_line = False
@@ -60,10 +67,12 @@ def encode():
 
     # save
     if config['save']:
-        print('saving file...')
-        np.save(path_to_result_file, one_hot_encoded_reads_tensor)
-
-    return one_hot_encoded_reads_tensor
+        print('saving files...')
+        np.save(path_to_result_file_one_hot, one_hot_encoded_reads_tensor)
+        with open(path_to_result_file_reads + ".json", "w") as json_file:
+            json.dump(reads, json_file)
+    # TODO return one_hot and reads
+    return one_hot_encoded_reads_tensor, reads
 
 
 def decode():

@@ -10,7 +10,7 @@ real_data: False
 max_read_length: 1006
 max_created_read_length: 90
 n_clusters: 2
-verbose: 1
+verbose: 0
 
 # create Data
 number_of_strains: 2 # [1...5]
