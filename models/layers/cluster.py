@@ -1,4 +1,4 @@
-import tensorflow as tf
+import tensorflow.python.keras.backend as keras_backend
 from tensorflow.python.keras.layers import Layer, InputSpec
 
 
@@ -15,7 +15,7 @@ class ClusteringLayer(Layer):
     def build(self, input_shape):
         assert len(input_shape) == 2
         input_dim = int(input_shape[1])
-        self.input_spec = InputSpec(dtype=tf.floatx(), shape=(None, input_dim))
+        self.input_spec = InputSpec(dtype=keras_backend.floatx(), shape=(None, input_dim))
         self.clusters = self.add_weight(shape=(self.n_clusters, input_dim), initializer='glorot_uniform',
                                         name='clusters')
         if self.initial_weights is not None:
@@ -24,8 +24,10 @@ class ClusteringLayer(Layer):
         self.built = True
 
     def call(self, inputs, **kwargs):
-        q = 1.0 / (1.0 + (tf.sum(tf.square(tf.expand_dims(inputs, axis=1) - self.clusters), axis=2) / self.alpha))
+        q = 1.0 / (1.0 + (
+                keras_backend.sum(keras_backend.square(keras_backend.expand_dims(inputs, axis=1) - self.clusters),
+                                  axis=2) / self.alpha))
         q **= (self.alpha + 1.0) / 2.0
-        q = tf.transpose(tf.transpose(q) / tf.sum(q, axis=1))
+        q = keras_backend.transpose(keras_backend.transpose(q) / keras_backend.sum(q, axis=1))
 
         return q

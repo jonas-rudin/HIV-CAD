@@ -37,8 +37,7 @@ class Autoencoder(Model):
             Flatten(),
             Dense(units=input_shape[1] / 4)
 
-        ]
-                                  )
+        ])
 
         self.decoder = Sequential(name="encoder", layers=[
             Dense(units=128 * input_shape[0]),
