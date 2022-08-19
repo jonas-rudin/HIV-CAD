@@ -1,18 +1,45 @@
 # TODO create clear structure
 # CAD
 reads_file_path: "../Data/454/454.fasta"
-haplotype_file_path: "../Data/reference/REF_fake.fasta"
-#haplotype_file_path: "../Data/reference/REF.fasta"
+haplotype_file_path: "./data/reference//REF.fasta"
+
 name: "HIV_CAD"
 save: True
-load: True
+load: False
 real_data: False
+#data: experimental
+data: created
 max_read_length: 1006
-max_created_read_length: 90
-n_clusters: 2
+max_created_read_length: 1000
+n_clusters: 1
 verbose: 0
 
 # create Data
-number_of_strains: 2 # [1...5]
-read_length: 10
-min_number_of_reads_per_strain: 1000
+number_of_strains: 1 # [1...5]
+read_length: 250
+min_number_of_reads_per_strain: 100
+
+# alignment
+min_alignment_score: 60
+min_read_length: 150
+
+# paths
+created:
+  reads_path: ./data/created/reads.fastq
+  one_hot_path: ./data/created/encoded_reads
+  hxb2_path: ./data/created/reference/hxb2.fasta
+  ref_path: ./data/created/reference/REF.fasta
+  cluster_path: ./results/created/clusters/
+  aligned_path: ./results/created/aligned/
+
+experimental:
+  reads_path: ./data/experimental/reads.fastq
+  one_hot_path: ./data/experimental/encoded_reads
+  hxb2_path: ./data/experimental/reference/hxb2.fasta
+  ref_path: ./data/experimental/reference/REF.fasta
+  cluster_path: ./results/experimental/clusters/
+  aligned_path: ./results/experimental/aligned/
+
+
+
+

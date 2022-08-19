@@ -4,3 +4,4 @@ results/
 .idea/
 
 __pycache__/
+/data/

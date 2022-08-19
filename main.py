@@ -8,8 +8,8 @@ from tensorflow.python.keras import Model
 
 import create_data
 import one_hot
-from helpers.align_sequences import align_sequences
 from helpers.colors_coding import ColorCoding
+from helpers.haplotype_alignment import haplotype_alignment
 from models.autoencoder import Autoencoder
 from models.layers.cluster import ClusteringLayer
 
@@ -35,11 +35,6 @@ if __name__ == '__main__':
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
-    # print("1", data[0])
-    # print("2", data[0][0])
-    # print("3", data[0][0][0])
-    # print("4", data[0][0][0][0])
-
     # create autoencoder
     autoencoder = Autoencoder(one_hot_encoded_reads.shape[1:])
 
@@ -52,7 +47,7 @@ if __name__ == '__main__':
 
     # train autoencoder
     autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
-                    epochs=100,
+                    epochs=10,
                     batch_size=batch_size,
                     shuffle=False,
                     verbose=0)
@@ -63,8 +58,9 @@ if __name__ == '__main__':
 
     # train k-means
     kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=verbose)
-    pred_kmeans = kmeans.fit_predict(cluster_model.predict(one_hot_encoded_reads))
-    align_sequences()
+    predicted_clusters = kmeans.fit_predict(cluster_model.predict(one_hot_encoded_reads))
+    print(predicted_clusters)
+    haplotype_alignment(reads=reads, predicted_clusters=predicted_clusters, n_clusters=n_clusters)
     # Todo MEC stuff and rebuild + evaluate
     output_cluster = cluster_model.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
     output_encoder = autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
