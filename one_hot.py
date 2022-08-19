@@ -19,13 +19,13 @@ def switcher(base):
 
 
 # encrypt reads according to switcher
-def encode_read(read):
+def encode_read(read, length):
     switched_read = []
     for base in read:
         switched_read.append(switcher(base))
     # encrypted_reads.append(encrypted_read)
     # adjust length
-    # switched_read.extend(-1. for _ in range(length - len(switched_read)))
+    switched_read.extend(-1. for _ in range(length - len(switched_read)))
     switched_read_tensor = tf.cast(switched_read, tf.int32)
     # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
     one_hot_read = tf.one_hot(switched_read_tensor, depth=4)

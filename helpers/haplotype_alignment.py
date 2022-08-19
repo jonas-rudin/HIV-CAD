@@ -57,7 +57,6 @@ def align_reads(clustered_reads):
         for read in reads:
             print(read)
             reads_string += read + '\n'
-
     return None
 
 

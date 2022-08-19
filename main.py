@@ -20,8 +20,8 @@ if __name__ == '__main__':
     # TODO print config and info
     print('Python version: {}.{}.{}'.format(sys.version_info[0], sys.version_info[1], sys.version_info[2]))
     print('Tensorflow version: {}'.format(tf.__version__))
-    if config['real_data']:
-        print(f'Working with {ColorCoding.OKGREEN}454{ColorCoding.ENDC} reads')
+    if config['data'] == 'experimental':
+        print(f'Working with {ColorCoding.OKGREEN}Illumina{ColorCoding.ENDC} reads')
         one_hot_encoded_reads, reads = one_hot.encode()
         batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / 200))
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     autoencoder.evaluate(x=one_hot_encoded_reads, y=one_hot_encoded_reads, verbose=verbose)
 
     if config['save']:
-        if config['real_data']:
+        if config['data'] == 'experimental':
             autoencoder.save('./results/models/454_weights')
         else:
             autoencoder.save(

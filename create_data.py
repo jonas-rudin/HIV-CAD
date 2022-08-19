@@ -44,7 +44,7 @@ def cut_into_reads(dna, length, amount, name_of_strain):
         # go through rna and cut it into reads
         while last_index < len(dna):
             read = add_error(dna[first_index:last_index])
-            read += '-' * (max_length - len(read))
+            # read += '-' * (max_length - len(read))
             # make read fastq
             dna_reads.append(
                 '@' + str(counter) + ' ' + name_of_strain + read + '\n+\n' + ('+' * len(read)))
@@ -53,7 +53,7 @@ def cut_into_reads(dna, length, amount, name_of_strain):
             first_index = last_index
             last_index += length + int(np.random.normal(0, length * 0.2, 1)[0])
         read = add_error(dna[first_index:len(dna)])
-        read += '-' * (max_length - len(read))
+        # read += '-' * (max_length - len(read))
         # make read fastq
         dna_reads.append('@' + str(counter) + ' ' + name_of_strain + read + '\n+\n' + ('+' * len(read)))
         counter += 1
@@ -86,7 +86,8 @@ def create_reads():
 
     # one hot encoding, convert list to tensor
     one_hot_encoded_reads = tf.expand_dims(
-        tf.convert_to_tensor([one_hot.encode_read(read) for read in reads_for_one_hot]), axis=3)
+        tf.convert_to_tensor(
+            [one_hot.encode_read(read, config['max_created_read_length']) for read in reads_for_one_hot]), axis=3)
 
     # save
     if config['save']:
