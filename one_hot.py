@@ -1,9 +1,10 @@
-from os.path import exists
+from os import listdir
+from os.path import exists, isfile, join
 
 import tensorflow as tf
 import yaml
 
-from helpers.IO import save, load
+from helpers.IO import save_tensor_file
 
 with open('./config.yml', 'r') as ymlfile:
     config = yaml.safe_load(ymlfile)
@@ -33,39 +34,43 @@ def encode_read(read, length):
 
 
 def encode():
-    path_to_result_file_one_hot = './results/' + config['name'] + "_one_hot"
-    path_to_result_file_reads = './results/' + config['name'] + "_reads.json"
-
-    # check if file already exists and use it if that is the case
-    if config['load'] and exists(path_to_result_file_one_hot + '.npy') and exists(path_to_result_file_reads):
-        return load(path_to_result_file_one_hot, path_to_result_file_reads)
+    # check if file already exists
+    if config['load'] and exists(config[config['data']]['one_hot_path'] + '_0.npy'):
+        print('reads are already one hot encoded')
+        dir_path = (config[config['data']]['one_hot_path'])[:-13]
+        return len([entry for entry in listdir(dir_path) if isfile(join(dir_path, entry))])
 
     # read reads
-    is_read_line = False
     one_hot_encoded_reads = []
 
     # read file line by line and one hot encode reads
-    print('reading and encoding data...')
-    reads = []
-    with open(config['reads_file_path']) as file:
-        for line in file:
-            if is_read_line:
-                read = line[:-1]
-                reads.append(info.replace('@SRR961596.', '>') + '\n' + read)  # Not sure with the replace
-                one_hot_encoded_read = encode_read(read, config['max_read_length'])
-                one_hot_encoded_reads.append(one_hot_encoded_read)
-                is_read_line = False
-            else:
-                is_read_line = True
-                info = line[:-1]
+    spot_index = 0
+    file_index = 0
+    for i in range(2):
+        print('reading file: Illumina_' + str(i + 1) + '.fastq')
 
+        with open(config[config['data']]['reads_path'] + str(i + 1) + '.fastq') as file:
+            for line in file:
+                if spot_index % 4 == 1:
+                    read = line[:-1]
+                    one_hot_encoded_read = encode_read(read, config['max_read_length'])
+                    one_hot_encoded_reads.append(one_hot_encoded_read)
+                spot_index += 1
+                if spot_index % (4 * config['number_of_spots_per_file']) == 0:
+                    # convert to tensor
+                    one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
+                    # save
+                    save_tensor_file(config[config['data']]['one_hot_path'], file_index, one_hot_encoded_reads_tensor)
+                    file_index += 1
+                    one_hot_encoded_reads = []
     # convert to tensor
+    print(one_hot_encoded_reads[0])
+
     one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
+    print(one_hot_encoded_reads_tensor[0])
 
     # save
-    if config['save']:
-        save(path_to_result_file_one_hot, one_hot_encoded_reads_tensor, path_to_result_file_reads, reads)
-
-    return one_hot_encoded_reads_tensor, reads
-
+    save_tensor_file(config[config['data']]['one_hot_path'], file_index, one_hot_encoded_reads_tensor)
+    print('reads are one hot encoded and saved.')
+    return file_index
 # TODO create reads of length max length and return reads as done in create data

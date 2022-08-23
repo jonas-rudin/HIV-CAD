@@ -8,6 +8,7 @@ from tensorflow.python.keras import Model
 
 import create_data
 import one_hot
+from helpers.IO import load_tensor_file
 from helpers.colors_coding import ColorCoding
 from helpers.haplotype_alignment import haplotype_alignment
 from models.autoencoder import Autoencoder
@@ -22,36 +23,46 @@ if __name__ == '__main__':
     print('Tensorflow version: {}'.format(tf.__version__))
     if config['data'] == 'experimental':
         print(f'Working with {ColorCoding.OKGREEN}Illumina{ColorCoding.ENDC} reads')
-        one_hot_encoded_reads, reads = one_hot.encode()
-        batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / 200))
-
+        number_of_files = one_hot.encode()
+        batch_size = int(np.ceil(100000 / 200))
     else:
         print(
             f'Working with {ColorCoding.OKBLUE}created{ColorCoding.ENDC} reads')
         one_hot_encoded_reads, reads = create_data.create_reads()
+        number_of_files = 1
         batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / 2))
-
+    # TODO change
+    number_of_files = 1
     # get
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
+    shape = [config['number_of_reads_per_file'], config['max_read_length'], 4, 1]
+    print(shape)
+
     # create autoencoder
-    autoencoder = Autoencoder(one_hot_encoded_reads.shape[1:])
+    autoencoder = Autoencoder(shape[1:])
 
     autoencoder.compile(optimizer='adam', loss=tf.keras.losses.MeanSquaredError())
-    autoencoder.build(input_shape=one_hot_encoded_reads.shape)
+    autoencoder.build(input_shape=shape)
     autoencoder.encoder.summary()
     autoencoder.decoder.summary()
     autoencoder.summary()
+    one_hot_encoded_reads = load_tensor_file(config[config['data']]['one_hot_path'], 0)
     print(one_hot_encoded_reads.shape)
+    print(one_hot_encoded_reads[0].shape)
 
     # train autoencoder
-    autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
-                    epochs=10,
-                    batch_size=batch_size,
-                    shuffle=False,
-                    verbose=0)
+    for i in range(number_of_files):
+        one_hot_encoded_reads = load_tensor_file(config[config['data']]['one_hot_path'], i)
+        autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
+                        epochs=5,
+                        batch_size=batch_size,
+                        shuffle=False,
+                        verbose=config['verbose'])
 
+    autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
+    print(one_hot_encoded_reads[0])
     # create clustering model
     clustering_layer = ClusteringLayer(n_clusters=n_clusters, name='clustering')(autoencoder.encoder.output)
     cluster_model = Model(inputs=autoencoder.encoder.input, outputs=clustering_layer)

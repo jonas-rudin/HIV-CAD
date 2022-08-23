@@ -48,7 +48,6 @@ def cut_into_reads(dna, length, amount, name_of_strain):
             # make read fastq
             dna_reads.append(
                 '@' + str(counter) + ' ' + name_of_strain + read + '\n+\n' + ('+' * len(read)))
-
             counter += 1
             first_index = last_index
             last_index += length + int(np.random.normal(0, length * 0.2, 1)[0])

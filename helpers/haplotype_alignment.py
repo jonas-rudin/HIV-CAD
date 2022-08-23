@@ -4,6 +4,8 @@ import numpy as np
 import pysam
 import yaml
 
+from helpers.IO import load_fastq_file_as_list
+
 with open('./config.yml', 'r') as ymlfile:
     config = yaml.safe_load(ymlfile)
     data = config['data']
@@ -28,8 +30,8 @@ def prepare_ref_for_bwa():
     return
 
 
-def clean_and_reformat_sam(cluster_index):
-    # TODO split into file with \n and remove where mapping score is too low
+def clean_sam_file(cluster_index):
+    # TODO  remove where mapping score is too low
     #  not sure if pysam is needed
     pysam.sort("-o", config[config['data']]['aligned_path'] + str(cluster_index) + '.bam',
                config[config['data']]['aligned_path'] + str(cluster_index) + '.sam')
@@ -47,7 +49,7 @@ def align(cluster_index):
     reference_file = config[config['data']]['hxb2_path']
     cmd = 'bwa mem -t 4 ' + reference_file + ' ' + read_file + ' > ' + aligned_file
     os.system(cmd)
-    # clean_and_reformat_sam(cluster_index)
+    # clean_sam_file(cluster_index)
     return
 
 
@@ -66,6 +68,8 @@ def haplotype_alignment(reads, predicted_clusters, n_clusters):
     # print(np.count_nonzero(predicted_clusters == 1))
     # print(np.count_nonzero(predicted_clusters == 2))
     clustered_reads = [[] for _ in range(n_clusters)]
+    reads = load_fastq_file_as_list(config[config['data']]['cluster_path'])
+    # TODO load read file
     for i in range(len(reads)):
         clustered_reads[predicted_clusters[i]].append(reads[i])
 
