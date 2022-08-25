@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def hamming_distance(read, haplo):
     return sum((haplo - read)[np.where(read != 0)] != 0)
 

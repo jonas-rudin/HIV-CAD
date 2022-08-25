@@ -2,12 +2,11 @@ from os import listdir
 from os.path import exists, isfile, join
 
 import tensorflow as tf
-import yaml
 
 from helpers.IO import save_tensor_file
+from helpers.config import get_config
 
-with open('./config.yml', 'r') as ymlfile:
-    config = yaml.safe_load(ymlfile)
+config = get_config()
 
 
 def switcher(base):

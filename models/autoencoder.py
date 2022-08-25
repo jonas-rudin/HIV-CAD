@@ -35,7 +35,8 @@ class Autoencoder(Model):
             PReLU(),
             Dropout(0),
             Flatten(),
-            Dense(units=input_shape[1] / 4)
+            # Dense(units=input_shape[1] / 4)
+            Dense(units=2500)
 
         ])
 

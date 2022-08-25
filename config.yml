@@ -8,10 +8,13 @@ save: True
 load: True
 data: experimental
 #data: created
-max_read_length: 252
+number_of_spots: 3000
+max_read_length: 1006 #9721 # length of HBX2
+haplotype_length: 9721 # length of HBX2
+#max_read_length: 252
 max_created_read_length: 250
-n_clusters: 1
-verbose: 1
+n_clusters: 5
+verbose: 0 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
 
 number_of_reads_per_file: 100000
 
@@ -34,12 +37,15 @@ created:
   aligned_path: ./results/created/aligned/
 
 experimental:
-  reads_path: ./data/experimental/Illumina_
-  one_hot_path: ./data/experimental/one_hot/encoded_reads
+  reads_path: ./data/experimental/454.fastq
+  #  reads_path: ./data/experimental/Illumina_
+  #  one_hot_path: ./data/experimental/one_hot/encoded_reads.npy
+  one_hot_path: ./data/experimental/encoded_reads
   hxb2_path: ./data/experimental/reference/hxb2.fasta
   ref_path: ./data/experimental/reference/REF.fasta
   cluster_path: ./results/experimental/clusters/
   aligned_path: ./results/experimental/aligned/
+  weights_path: ./results/experimental/models/weights
 
 
 

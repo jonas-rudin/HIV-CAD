@@ -23,9 +23,9 @@ def save_tensor_file(file_path, content):
     np.save(file_path, content)
 
 
-def save_tensor_file(file_path, index, content):
-    print('saving .npy file ' + str(index))
-    np.save(file_path + '_' + str(index) + '.npy', content)
+# def save_tensor_file(file_path, index, content):
+#     print('saving .npy file ' + str(index))
+#     np.save(file_path + '_' + str(index) + '.npy', content)
 
 
 def save_fastq(file_path, content):
@@ -44,25 +44,26 @@ def load(path_to_result_file_one_hot, path_to_result_file_reads):
 
 
 def load_tensor_file(file_path):
-    print('loading .npy file')
+    print('loading ' + file_path + '.npy file')
     return np.load(file_path + '.npy')
 
 
-def load_tensor_file(file_path, index):
-    print('loading: ' + file_path + ' _ ' + str(index) + '.npy')
-    return np.load(file_path + '_' + str(index) + '.npy')
+# def load_tensor_file(file_path, index):
+#     print('loading: ' + file_path + ' _ ' + str(index) + '.npy')
+#     return np.load(file_path + '_' + str(index) + '.npy')
 
 
 def load_fastq_file_as_list(file_path):
     print('loading fastq file')
     reads = []
-    if config['data'] == 'experiemntal':
-        for i in range(2):
-            with open(file_path + str(i + 1) + '.fastq') as file:
-                file.readline()
+    if config['data'] == 'experimental':
+        # for i in range(2):
+        with open(file_path) as file:
+            file.readline()
+            for i in range(config['number_of_spots']):
                 reads.append(file.readline() + file.readline() + file.readline() + file.readline())
     else:
         with open(file_path) as file:
             file.readline()
             reads.append(file.readline() + file.readline() + file.readline() + file.readline())
-    print(reads)
+    return reads

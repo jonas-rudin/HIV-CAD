@@ -3,13 +3,12 @@ from random import randint, shuffle, uniform, choice
 
 import numpy as np
 import tensorflow as tf
-import yaml
 
 import one_hot
 from helpers.IO import save, load
+from helpers.config import get_config
 
-with open("./config.yml", "r") as ymlfile:
-    config = yaml.safe_load(ymlfile)
+config = get_config()
 
 bases = ['A', 'C', 'G', 'T']
 
