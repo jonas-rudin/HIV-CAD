@@ -2,6 +2,10 @@ from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.layers import InputLayer, Conv2D, PReLU, Dropout, Flatten, Dense, Reshape, Conv2DTranspose
 from tensorflow.python.keras.models import Model
 
+from helpers import config
+
+config = config.get_config()
+
 
 class Autoencoder(Model):
     def __init__(self, input_shape):
@@ -36,7 +40,7 @@ class Autoencoder(Model):
             Dropout(0),
             Flatten(),
             # Dense(units=input_shape[1] / 4)
-            Dense(units=2500)
+            Dense(units=int(config['haplotype_length']) / 4)
 
         ])
 

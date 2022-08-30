@@ -7,14 +7,17 @@ name: "HIV_CAD"
 save: True
 load: True
 data: experimental
+alignment: ngs_alignment # de_novo_alignment # or ngs_alignment
 #data: created
 number_of_spots: 3000
 max_read_length: 1006 #9721 # length of HBX2
-haplotype_length: 9721 # length of HBX2
+#haplotype_length: 9721 # length of HBX2
+#haplotype_length: 9850 # length of HBX2 # adapted for positions in the back
+haplotype_length: 2000 # length of HBX2
 #max_read_length: 252
 max_created_read_length: 250
 n_clusters: 5
-verbose: 0 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
+verbose: 1 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
 
 number_of_reads_per_file: 100000
 
@@ -27,9 +30,9 @@ min_number_of_reads_per_strain: 100
 min_alignment_score: 60
 min_read_length: 150
 
-# paths
+# path
 created:
-  reads_path: ./data/created/reads.fastq
+  reads_path: ./data/created/reads
   one_hot_path: ./data/created/encoded_reads
   hxb2_path: ./data/created/reference/hxb2.fasta
   ref_path: ./data/created/reference/REF.fasta
@@ -37,12 +40,14 @@ created:
   aligned_path: ./results/created/aligned/
 
 experimental:
-  reads_path: ./data/experimental/454.fastq
+  reads_path: ./data/experimental/454
+  mapped_reads_path: ./data/experimental/454_mapped.sam
   #  reads_path: ./data/experimental/Illumina_
   #  one_hot_path: ./data/experimental/one_hot/encoded_reads.npy
   one_hot_path: ./data/experimental/encoded_reads
   hxb2_path: ./data/experimental/reference/hxb2.fasta
-  ref_path: ./data/experimental/reference/REF.fasta
+  #  ref_path: ./data/experimental/reference/REF.fasta
+  ref_path: ./data/experimental/reference/REF_reversed.fasta
   cluster_path: ./results/experimental/clusters/
   aligned_path: ./results/experimental/aligned/
   weights_path: ./results/experimental/models/weights

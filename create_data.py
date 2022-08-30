@@ -4,7 +4,6 @@ from random import randint, shuffle, uniform, choice
 import numpy as np
 import tensorflow as tf
 
-import one_hot
 from helpers.IO import save, load
 from helpers.config import get_config
 

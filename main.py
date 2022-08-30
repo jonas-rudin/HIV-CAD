@@ -7,8 +7,8 @@ from sklearn.cluster import KMeans
 from tensorflow.python.keras import Model
 
 import create_data
-import one_hot_454
-from haplotype_alignment import haplotype_alignment
+import majority_voting
+import one_hot
 from helpers.IO import load_tensor_file
 from helpers.colors_coding import ColorCoding
 from helpers.config import get_config
@@ -23,26 +23,15 @@ if __name__ == '__main__':
     print('Tensorflow version: {}'.format(tf.__version__))
     if config['data'] == 'experimental':
         print(f'Working with {ColorCoding.OKGREEN}454{ColorCoding.ENDC} reads')
-        one_hot_454.encode()
+        one_hot.encode()
     else:
         print(
             f'Working with {ColorCoding.OKBLUE}created{ColorCoding.ENDC} reads')
         one_hot_encoded_reads, reads = create_data.create_reads()
         # number_of_files = 1
+    print('Doing ' + config['alignment'] + ' alignment')
     # TODO change
 
-    # out = np.zeros((2, 4))
-    # print(out)
-    # out[0, 1] = 1
-    # print(out)
-    # out[0, 1] = 0
-    # out[:, 0] = [1, 2]
-    # print(out)
-    #
-    # exit(-1)
-
-    # number_of_files = 1
-    # get
     n_clusters = config['n_clusters']
     verbose = config['verbose']
     one_hot_encoded_reads = load_tensor_file(config[config['data']]['one_hot_path'])
@@ -58,24 +47,30 @@ if __name__ == '__main__':
     autoencoder.encoder.summary()
     autoencoder.decoder.summary()
     autoencoder.summary()
-    print(one_hot_encoded_reads.shape[0])
-    print(batch_size)
+    print('reads tensor shape:', one_hot_encoded_reads.shape)
+    print('number of reads:', one_hot_encoded_reads.shape[0])
+    print('batch_size:', batch_size)
 
     # train autoencoder
     # for i in range(number_of_files):
     #     one_hot_encoded_reads = load_tensor_file(config[config['data']]['one_hot_path'], i)
     # checkpoint_path = "results/models/autoencoder"
     # checkpoint_dir = os.path.dirname(checkpoint_path)
+    # if True:
+    #     print("True")
     if config['load'] and exists(config[config['data']]['weights_path'] + '.index'):
-
         print(f'{ColorCoding.OKGREEN}Loading weights{ColorCoding.ENDC}')
         autoencoder.load_weights(config[config['data']]['weights_path'])
+    # print(f'{ColorCoding.OKGREEN}Evaluate loaded weights{ColorCoding.ENDC}')
+    # autoencoder.evaluate(x=one_hot_encoded_reads, y=one_hot_encoded_reads, verbose=1)
+    # 5881/5881 [==============================] - 828s 141ms/step - loss: 5.3851e-05 (trained with epoch=30)
+
     # autoencoder_checkpoint = ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True,
     #                                          verbose=config['verbose'], save_freq=10*batch_size)
     else:
         print(f'{ColorCoding.OKGREEN}Training Autoencoder{ColorCoding.ENDC}')
         autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
-                        epochs=1,
+                        epochs=10,
                         batch_size=batch_size,
                         shuffle=True,
                         verbose=config['verbose'])
@@ -84,11 +79,6 @@ if __name__ == '__main__':
         print(f'{ColorCoding.OKGREEN}Saving Weights{ColorCoding.ENDC}')
         autoencoder.save_weights(config[config['data']]['weights_path'])
 
-    # print(one_hot_encoded_reads[0])
-    #
-    # print(autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0)))
-    # print(one_hot_encoded_reads[0])
-    # create clustering model
     print(f'{ColorCoding.OKGREEN}Build Clustering Model{ColorCoding.ENDC}')
 
     clustering_layer = ClusteringLayer(n_clusters=n_clusters, name='clustering')(autoencoder.encoder.output)
@@ -96,17 +86,22 @@ if __name__ == '__main__':
     cluster_model.summary()
     # train k-means
 
-    kmeans_repetitions = 10
+    kmeans_rep = 10
     print(
-        f'{ColorCoding.OKGREEN}Initialize and Running KMeans{ColorCoding.ENDC} (' + str(kmeans_repetitions) + ' times)')
+        f'{ColorCoding.OKGREEN}Initialize and Running KMeans{ColorCoding.ENDC} (' + str(kmeans_rep) + ' times)')
     # TODO according to: 2.3 clustering layer
-    for i in range(kmeans_repetitions):
-        kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=0)  # TODO change to verbose
+    mec_results = []
+    for i in range(kmeans_rep):
+        kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=verbose)  # TODO change to verbose
         predicted_clusters = kmeans.fit_predict(cluster_model.predict(one_hot_encoded_reads))
         # print(origin2haplotype(predicted_clusters, one_hot_encoded_reads, n_clusters))
         # exit(-1)
-        haplotype_alignment(predicted_clusters=predicted_clusters, n_clusters=n_clusters)
-        # Todo MEC stuff and rebuild + evaluate
+        majority_voting.align_reads_per_cluster(one_hot_encoded_reads, predicted_clusters, n_clusters)
+        minimum_error_correction()
+        # Todo MEC stuff + evaluate
+    #      mec_results.append(MEC(kmeans_rep=i, predicted_clusters=predicted_clusters, n_clusters=n_clusters))
+    #      keep min(mec_results)
+
     output_cluster = cluster_model.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
     output_encoder = autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
     print("output_cluster", output_cluster)
@@ -123,3 +118,4 @@ if __name__ == '__main__':
 
     print(one_hot_encoded_reads[0].shape)
     print(tf.squeeze(output_encoder, [0]).shape)
+    print(f'{ColorCoding.OKGREEN}FINITO{ColorCoding.ENDC}')

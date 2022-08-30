@@ -56,14 +56,22 @@ def load_tensor_file(file_path):
 def load_fastq_file_as_list(file_path):
     print('loading fastq file')
     reads = []
+
     if config['data'] == 'experimental':
-        # for i in range(2):
-        with open(file_path) as file:
-            file.readline()
-            for i in range(config['number_of_spots']):
-                reads.append(file.readline() + file.readline() + file.readline() + file.readline())
+        if config['number_of_spots'] == 3000:
+            with open(file_path) as file:
+                for i in range(config['number_of_spots']):
+                    reads.append(file.readline() + file.readline() + file.readline() + file.readline())
+        else:
+            with open(file_path) as file:
+                while True:
+                    header = file.readline()
+                    if header:
+                        reads.append(header + file.readline() + file.readline() + file.readline())
+                    else:
+                        break
+
     else:
         with open(file_path) as file:
-            file.readline()
             reads.append(file.readline() + file.readline() + file.readline() + file.readline())
     return reads

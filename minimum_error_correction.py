@@ -1,6 +1,15 @@
 import numpy as np
 
 
+def get_reads_from_sam(path):
+    with open(path, 'r') as file:
+        all_lines = file.readlines()
+        for line in all_lines:
+            list_of_line = line.split()
+            print(list_of_line[0])
+            print(list_of_line[1])
+
+
 def hamming_distance(read, haplo):
     return sum((haplo - read)[np.where(read != 0)] != 0)
 
