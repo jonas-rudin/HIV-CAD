@@ -85,6 +85,7 @@ def ngs_alignment(path):
 
 
 def de_novo_alignment(path):
+    # TODO try this for for beginning
     read_file = config[config['data']]['cluster_path'] + path + '.fastq'
     output_folder = config[config['data']]['aligned_path'] + config['alignment'] + '/'
     spades_cmd = 'python ../tools/SPAdes-3.12.0-Darwin/bin/spades.py -s ' + read_file + ' -o ' + output_folder \

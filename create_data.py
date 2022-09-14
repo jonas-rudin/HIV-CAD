@@ -4,6 +4,7 @@ from random import randint, shuffle, uniform, choice
 import numpy as np
 import tensorflow as tf
 
+import one_hot
 from helpers.IO import save, load
 from helpers.config import get_config
 
@@ -71,7 +72,7 @@ def create_reads():
         load(path_to_result_file_one_hot, path_to_result_file_reads)
 
     # read original haplotype
-    f = open(config['created']['ref_path'], 'r')
+    f = open(config['created']['ref_path'] + '.fasta', 'r')
     reads = []
     for _ in range(number_of_strains):
         name_of_strain = (f.readline())[1:]

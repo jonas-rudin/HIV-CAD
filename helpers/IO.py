@@ -28,10 +28,10 @@ def save_tensor_file(file_path, content):
 #     np.save(file_path + '_' + str(index) + '.npy', content)
 
 
-def save_fastq(file_path, content):
+def save_file(file_path, content):
     print('saving fastq file...')
-    with open(file_path, "w") as fasta_file:
-        fasta_file.write(content)
+    with open(file_path, "w") as file:
+        file.write(content)
 
 
 # loads reads and one hot encoded reads from files

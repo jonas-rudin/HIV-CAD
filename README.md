@@ -29,8 +29,6 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 
 [//]: # (- de novo macht kei sinn mit MEC teste odr?)
 
-- MEC if aligned the wrong way -> should not exist? check how 454/Roche works -> check if have to get complement
-  sequence
 - l/4 -> check SNP rate -> align and compare 5 strains (eg HD)
 - clean data beforehand? remove short reads? no
 - 5881/5881 [==============================] - 828s 141ms/step - loss: 5.3851e-05 => overfitting no problem? kind of
@@ -40,16 +38,29 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 
 ## TODO
 
-- alignment of reads to HXB2
 - adapt one_hot
 - adapt pipeline with dimensions (max length)
 - how to run on my pc
-- add majority voting -> remove haplotype alignment
-- add MEC and Hamming distance
-- align sequences and get difference
-- look at chi's solution
+- align sequences and get difference of
+- look at chi's solution possible runtime improvement
 - work with fake data -> create this data
 - write to cluster of uni basel
-- write to sergej
-- ettiketen bestellen
-- Roth schreiben
+- Roth schreiben -> antworten
+- 3.70GHz Intel i7-8700K processor, 2 NVIDIA GeForce GTX 1080Ti computer graphics cards and 32GB RAM.
+
+# TODO text
+
+- install texit
+- us uni vorlage
+- create structure
+- measure time
+
+
+1. Abstract
+2. Introduction
+3. Related Work
+4. Methods
+5. Results
+    1. time and reconstruction
+    2. Discussion
+6. Conclusion

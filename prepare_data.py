@@ -1,5 +1,6 @@
 import os
 
+import one_hot
 from helpers.config import get_config
 
 config = get_config()
@@ -28,5 +29,7 @@ if __name__ == '__main__':
     remove_unaligned_cmd = 'samtools view -F 4 ' + read_file + '.sam > ' + mapped_reads_file
     os.system(remove_unaligned_cmd)
     print('cleaned')
+
+    one_hot.encode_fasta()
 
     # create_complementary_of
