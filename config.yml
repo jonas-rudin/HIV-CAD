@@ -6,14 +6,14 @@ haplotype_file_path: "./data/reference//REF.fasta"
 name: "HIV_CAD"
 save: True
 load: True
-data: experimental
-alignment: ngs_alignment # de_novo_alignment # or ngs_alignment
+data: testing # illumina, 454 or testing
+alignment: ngs_alignment # de_novo_alignment or ngs_alignment
 #data: created
 number_of_spots: 3000
 max_read_length: 1006 #9721 # length of HBX2
 #haplotype_length: 9721 # length of HBX2
 #haplotype_length: 9850 # length of HBX2 # adapted for positions in the back
-haplotype_length: 2000 # length of HBX2
+haplotype_length: 1000 # length of HBX2
 #max_read_length: 252
 max_created_read_length: 250
 n_clusters: 5
@@ -32,6 +32,9 @@ min_alignment_score: 60
 min_read_length: 150
 
 # path
+hxb2_path: ./data/experimental/reference/hxb2.fasta
+ref_path: ./data/experimental/reference/REF
+
 created:
   reads_path: ./data/created/reads
   one_hot_path: ./data/created/encoded_reads
@@ -40,21 +43,36 @@ created:
   cluster_path: ./results/created/clusters/
   aligned_path: ./results/created/aligned/
 
-experimental:
+454:
   reads_path: ./data/experimental/454
   mapped_reads_path: ./data/experimental/454_mapped.sam
-  #  reads_path: ./data/experimental/Illumina_
-  #  one_hot_path: ./data/experimental/one_hot/encoded_reads.npy
-  one_hot_path: ./data/experimental/encoded_reads
-  hxb2_path: ./data/experimental/reference/hxb2.fasta
-  #  ref_path: ./data/experimental/reference/REF.fasta
-  ref_path: ./data/experimental/reference/REF
+  one_hot_path: ./data/experimental/454_encoded_reads
   cluster_path: ./results/experimental/clusters/
   aligned_path: ./results/experimental/aligned/
   autoencoder_weights_path: ./results/experimental/models/autoencoder_weights
-  output_path: ./results/experimental/output.fasta
-  weights_path: ./results/experimental/models/weights
+  output_path: ./results/experimental/454_output.fasta
+  weights_path: ./results/experimental/models/454_weights
+  ref_path: ./data/experimental/reference/454_REF
+
+  haplotype_length: 9850
+
+illumina:
+  reads_path: ./data/experimental/Illumina
+  mapped_reads_path: ./data/experimental/illumina_mapped.sam
+  one_hot_path: ./data/experimental/illumina_encoded_reads
+  weights_path: ./results/experimental/models/illumina_weights
+  output_path: ./results/experimental/illumina_output.fasta
+  ref_path: ./data/experimental/reference/illumina_REF
+  haplotype_length: 9721
 
 
+testing:
+  reads_path: ./data/experimental/Illumina # Illumina or 454
+  mapped_reads_path: ./data/experimental/illumina_mapped.sam # illumina_mapped.sam or 454_mapped.sam
+  one_hot_path: ./data/experimental/testing_encoded_reads
+  weights_path: ./results/experimental/models/testing_weights
+  output_path: ./results/experimental/testing_output.fasta
+  ref_path: ./data/experimental/reference/testing_REF
+  haplotype_length: 1000
 
 

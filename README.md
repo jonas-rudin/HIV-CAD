@@ -54,7 +54,9 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 - us uni vorlage
 - create structure
 - measure time
-
+- limitations -> no new alignment (or maybe do de nove first -> align and see?)
+- illumina vs 454 better error rate but less data -> data overweights here? maybe?
+- filter data might make it to rough for distant mutations
 
 1. Abstract
 2. Introduction

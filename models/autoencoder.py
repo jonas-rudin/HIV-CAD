@@ -5,6 +5,7 @@ from tensorflow.python.keras.models import Model, Input
 from helpers import config
 
 config = config.get_config()
+data = config['data']
 
 
 def get_autoencoder_key_points(input_shape):
@@ -43,7 +44,8 @@ def get_autoencoder_key_points(input_shape):
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_dropout_3)
     # 5. layer
     # TODO replace all others
-    output_encoder = Dense(units=config['haplotype_length'] / 4, name='encoder_Dense_5')(encoder_flatten_4)
+    output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
+        encoder_flatten_4)
 
     decoder_dense_1 = Dense(units=128 * input_shape[0], name='decoder_Dense_1')(output_encoder)
     decoder_prelu_2 = PReLU(name='decoder_PReLU_2')(decoder_dense_1)
@@ -118,7 +120,7 @@ class Autoencoder(Model):
             PReLU(name='encoder_PReLU_3'),
             Dropout(0, name='encoder_Dropout_3'),
             Flatten(name='encoder_Flatten_4'),
-            Dense(units=config['haplotype_length'] / 4, name='encoder_Dense_5')
+            Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')
         ])
 
         # self.clustering_1 = ClusteringLayer(n_clusters=1, name='clustering_1')

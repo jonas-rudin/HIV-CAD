@@ -5,7 +5,9 @@ def majority_vote_alignment(clustered_reads):
     clustered_reads_sum = clustered_reads.sum(axis=0)
     consensus_sequence = np.zeros((clustered_reads.shape[1], 4, 1), dtype=np.int)
     for i in range(clustered_reads_sum.shape[0]):
-        consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
+        if clustered_reads_sum[i].sum(axis=0) != 0:
+            consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
+        # TODO check what if multiple the same count?
     return consensus_sequence
 
 

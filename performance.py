@@ -17,7 +17,8 @@ def minimum_error_correction(reads, consensus_sequences):
     return mec
 
 
-def correct_phasing_rate():
+def correct_phasing_rate(consensus_sequences):
+    reference_sequences = load_tensor_file()
     return
 
     # res = 0
