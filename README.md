@@ -38,14 +38,12 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 
 ## TODO
 
-- adapt one_hot
-- adapt pipeline with dimensions (max length)
-- how to run on my pc
 - align sequences and get difference of
 - look at chi's solution possible runtime improvement
 - work with fake data -> create this data
 - write to cluster of uni basel
 - Roth schreiben -> antworten
+- Try de nove in the begining for alignment => see if works as ref
 - 3.70GHz Intel i7-8700K processor, 2 NVIDIA GeForce GTX 1080Ti computer graphics cards and 32GB RAM.
 
 # TODO text

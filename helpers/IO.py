@@ -10,11 +10,18 @@ with open('./config.yml', 'r') as ymlfile:
 
 # TODO split into save/load general files and .npy
 # saves reads and one hot encoded reads to files
-def save(path_to_result_file_one_hot, one_hot_encoded_reads, path_to_result_file_reads, reads):
+# def save(path_to_result_file_one_hot, one_hot_encoded_reads, path_to_result_file_reads, reads):
+#     print('saving files...')
+#     np.save(path_to_result_file_one_hot, one_hot_encoded_reads)
+#     with open(path_to_result_file_reads, "w") as fasta_file:
+#         fasta_file.write(reads)
+#     return
+
+def save_text(path_to_file, text):
     print('saving files...')
-    np.save(path_to_result_file_one_hot, one_hot_encoded_reads)
-    with open(path_to_result_file_reads, "w") as fasta_file:
-        fasta_file.write(reads)
+    # np.save(path_to_result_file_one_hot, one_hot_encoded_reads)
+    with open(path_to_file, "w") as fasta_file:
+        fasta_file.write(text)
     return
 
 

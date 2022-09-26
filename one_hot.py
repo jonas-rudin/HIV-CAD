@@ -93,7 +93,7 @@ def encode_sam():
         save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
 
-    elif data == 454:
+    elif data == 454 or data == 'created':
         with open(config[data]['mapped_reads_path']) as file:
             counter = 0
             for line in file:
@@ -141,7 +141,7 @@ def encode_sam():
 
 
 def encode_fasta():
-    if config['load'] and exists(config['ref_path'] + '.npy'):
+    if config['load'] and exists(config[data]['ref_path'] + '.npy'):
         print('sequences are already one hot encoded')
         return
 
@@ -160,8 +160,8 @@ def encode_fasta():
     one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_sequences), axis=3)
 
     # save
-    save_tensor_file(config['ref_path'], one_hot_encoded_reads_tensor)
-    print('Reads are one hot encoded and saved.', config['ref_path'])
+    save_tensor_file(config[data]['ref_path'], one_hot_encoded_reads_tensor)
+    print('Reads are one hot encoded and saved.')
 
 
 def decode(encoded_sequences):

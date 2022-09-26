@@ -4,6 +4,7 @@ from os.path import exists
 
 import numpy as np
 import tensorflow as tf
+# from sklearn.cluster import KMeans
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import MeanSquaredError, KLD
 
@@ -45,12 +46,10 @@ if __name__ == '__main__':
             print(one_hot_encoded_reads.shape)
     else:
         one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
-    number_of_batches = 200
+    # TODO uncomment
+    # number_of_batches = 200
+    number_of_batches = 200  # created
     batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / number_of_batches))
-    # predicted_clusters = [i % 2 for i in range(one_hot_encoded_reads.shape[0])]
-    # consensus_sequence = majority_voting.align_reads_per_cluster(one_hot_encoded_reads, predicted_clusters, 2)
-    # performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequence)
-    # exit(-1)
 
     # create autoencoder
     model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
@@ -150,7 +149,7 @@ if __name__ == '__main__':
         #     pickle.dump(centroids, fp)
         with open("centroids", "rb") as fp:
             centroids = pickle.load(fp)
-        print(centroids)
+
         cae_model.get_layer(name='clustering').set_weights([centroids])
         cae_model.build(input_shape=one_hot_encoded_reads.shape)
         cae_model.summary()
@@ -164,8 +163,8 @@ if __name__ == '__main__':
             # # TODO delete incl. file
             # with open("clustering_output", "wb") as fp:
             #     pickle.dump(clustering_output, fp)
-            with open("clustering_output", "rb") as fp:
-                clustering_output = pickle.load(fp)
+            # with open("clustering_output", "rb") as fp:
+            #     clustering_output = pickle.load(fp)
             predicted_clusters = np.argmax(clustering_output, axis=1)
 
             print('number of clusters')
@@ -190,11 +189,8 @@ if __name__ == '__main__':
                     hd.append(performance.hamming_distance(one_hot_encoded_reads[read_index], consensus_sequence))
                 predicted_clusters_training[read_index][np.argmin(hd)] = 1
                 predicted_clusters_training_tensor = tf.convert_to_tensor(predicted_clusters_training, dtype=tf.int8)
-            print(new_mec_results)
 
             if epoch > 1 and old_mec_result == new_mec_results:
-                print('FUCK')
-
                 break
             old_mec_result = new_mec_results
             # for i in range(number_of_batches):
@@ -207,14 +203,12 @@ if __name__ == '__main__':
             #                          y=[one_hot_encoded_reads[first:last],
             #                             predicted_clusters_training_tensor[first:last]])
             # or (what is the difference?)
-            print('where am i?')
             cae_model.fit(x=one_hot_encoded_reads,
                           y=[one_hot_encoded_reads,
                              predicted_clusters_training_tensor],
                           epochs=1,
                           batch_size=batch_size,
                           verbose=1)
-            print('here?')
 
         # TODO what is happening here?
         # correction
@@ -252,6 +246,6 @@ if __name__ == '__main__':
         #         autoencoder.save(
         #             './results/models/created_weights_' + str(config['number_of_strains']) + '_' + str(
         #                 config['read_length']) + '_' + str(config['min_number_of_reads_per_strain']))
-
+    performance.correct_phasing_rate(consensus_sequences)
     # print(tf.squeeze(output_encoder, [0]).shape)
     print(f'{ColorCoding.OKGREEN}FINITO{ColorCoding.ENDC}')
