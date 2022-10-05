@@ -3,7 +3,7 @@ import sys
 from os.path import exists
 
 import numpy as np
-import psutil
+# import psutil
 import tensorflow as tf
 # from sklearn.cluster import KMeans
 from sklearn.cluster import KMeans
@@ -19,8 +19,8 @@ from helpers.config import get_config
 from models.autoencoder import get_autoencoder_key_points
 from models.layers.cluster import ClusteringLayer
 
-values = psutil.virtual_memory()
-total = values.total >> 30
+# values = psutil.virtual_memory()
+# total = values.total >> 30
 print(total)
 # in bytes
 config = get_config()
@@ -64,8 +64,8 @@ if __name__ == '__main__':
 
     # for d in dataset:
     #     print(d)
-    values = psutil.virtual_memory()
-    print(values)
+    # values = psutil.virtual_memory()
+    # print(values)
     if data == 'illumina':
         # index = 0
         # path_to_encoded_files = []
@@ -139,8 +139,8 @@ if __name__ == '__main__':
     # create autoencoder
     print(f'{ColorCoding.OKGREEN}before{ColorCoding.ENDC}')
 
-    values = psutil.virtual_memory()
-    print(values)
+    # values = psutil.virtual_memory()
+    # print(values)
 
     model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
     # model_input, encoder_output, decoder_output = get_autoencoder_key_points((9850, 4, 1))
@@ -151,15 +151,16 @@ if __name__ == '__main__':
     autoencoder.compile(optimizer='adam', loss=MeanSquaredError())
     autoencoder.optimizer.lr.assign(0.001)
 
-    values = psutil.virtual_memory()
-    print(values)
+    # values = psutil.virtual_memory()
+    # print(values)
 
     # one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
 
     autoencoder.build(input_shape=one_hot_encoded_reads.shape)
 
-    values = psutil.virtual_memory()
-    print(values)
+    autoencoder.summary()
+    # values = psutil.virtual_memory()
+    # print(values)
 
     print('reads tensor shape:', one_hot_encoded_reads.shape)
     print('number of reads:', one_hot_encoded_reads.shape[0])

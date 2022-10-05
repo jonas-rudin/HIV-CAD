@@ -106,9 +106,6 @@ def encode_sam():
         one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
 
         # save
-        # save_tfrecord(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
-        print(one_hot_encoded_reads_tensor.shape)
-        print(one_hot_encoded_reads_tensor[0])
         save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
 
