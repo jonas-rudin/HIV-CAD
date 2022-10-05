@@ -35,6 +35,11 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
   should be.
 - remove no interesting (no SNPs)
 - might not work for too many cluster => test with generated data
+- small batch size problem?
+- what is c++ file doing?
+- try chi's approach
+- check nn parameter!!!!
+- check autoencoder bach_size on input vs on training
 
 ## TODO
 
@@ -63,4 +68,7 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 5. Results
     1. time and reconstruction
     2. Discussion
+    3. created vs tested vs 454 vs illumina vs compressed
 6. Conclusion
+
+ssh rudjon00@dmi-wheatstone.dmi.unibas.ch

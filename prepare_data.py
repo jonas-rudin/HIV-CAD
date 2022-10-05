@@ -13,6 +13,31 @@ silence = ''
 
 
 if __name__ == '__main__':
+
+    # # with open(config[data]['unaligned_ref_path'] + '.fasta') as file:
+    # with open('./data/reference/REF.fasta') as file:
+    #     names = []
+    #     sequences = []
+    #     for line in file:
+    #         print(line)
+    #         if line.find('>') == -1:
+    #             sequences.append(line)
+    #         else:
+    #             names.append(line)
+    #     named_sequences = zip(names, sequences)
+    #     print(named_sequences)
+    #     longest_sequence = max(sequences, key=len)
+    #     longest_index = sequences.index(longest_sequence)
+    #     longest_name = names[longest_index]
+    #     for name, sequence in named_sequences:
+    #         print(name)
+    #         print(len(sequence))
+    #         if name == longest_name:
+    #             continue
+    #         print('out')
+    #         alignment = pairwise2.align.globalxx(longest_sequence, sequence, one_alignment_only=True)
+    #         print(alignment)
+    # exit(-1)
     read_file = config[data]['reads_path']
     reference_file = config['hxb2_path']
     mapped_reads_file = config[data]['mapped_reads_path']

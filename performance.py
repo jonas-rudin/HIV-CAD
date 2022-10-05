@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 
+import one_hot
 from helpers.IO import load_tensor_file
 from helpers.config import get_config
 
@@ -27,22 +28,47 @@ def minimum_error_correction(reads, consensus_sequences):
 
 def correct_phasing_rate(consensus_sequences):
     reference_sequences = load_tensor_file(config[data]['ref_path'])
+    # TODO should i do that?
+    # consensus_sequences = [shift_start_of_sequence(sequence) for sequence in consensus_sequences]
+
+    print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences))
+    print('\nreference_sequences:\n', one_hot.decode(reference_sequences))
+
     if len(consensus_sequences) != len(reference_sequences):
         print(
             'number of consensus sequences and reference sequences mismatch,' + 'correction phasing rate can\'t be calculated')
         return
-    adjustment = int(config[data]['haplotype_length'] / 50)
     distances = np.zeros((len(consensus_sequences), len(reference_sequences)))
     for cs_index in range(len(consensus_sequences)):
         for ref_index in range(len(reference_sequences)):
-            # TODO figure out with shift to adjust -> must have the same length
-
-            distances[cs_index][ref_index] = hamming_distance(consensus_sequences[cs_index],
-                                                              reference_sequences[ref_index])
+            print('ref_index', ref_index)
+            # TODO New
+            hd_per_ref = []
+            reference_sequence = reference_sequences[ref_index]
+            # print(reference_sequence.shape)
+            # print(reference_sequence[0])
+            # print(reference_sequence[-1])
+            if np.sum(reference_sequence[-1]) != 0:
+                # print('only one')
+                hd_per_ref.append(hamming_distance(consensus_sequences[cs_index], reference_sequence))
+            else:
+                # print('last')
+                for index in range(len(reference_sequence - 1), -1, -1):
+                    # print('index', index)
+                    reference_sequence = np.roll(reference_sequence, 1, axis=0)
+                    if np.sum(reference_sequence[-1]) != 0:
+                        # print('reference_sequence[-1]', reference_sequence[-1])
+                        break
+                    hd_per_ref.append(hamming_distance(consensus_sequences[cs_index], reference_sequence))
+            print('hd_per_ref', hd_per_ref)
+            print('min(hd_per_ref)', min(hd_per_ref))
+            distances[cs_index][ref_index] = min(hd_per_ref)
+            # TODO Old
+            # distances[cs_index][ref_index] = hamming_distance(consensus_sequences[cs_index],
+            #                                                   reference_sequences[ref_index])
 
     min_indexes = []
     min_sum = 0
-    # TODO fix code below... with not dumb code or with permutaions from sympy
     indexes = list(range(len(reference_sequences)))
     permutations = list(itertools.permutations(indexes))
     for permutation in permutations:
@@ -54,6 +80,7 @@ def correct_phasing_rate(consensus_sequences):
             min_sum = tmp_sum
 
     print('min_sum', min_sum)
+
     # print(result)
     # # SORRY for that code...
     #

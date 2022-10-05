@@ -82,3 +82,20 @@ def load_fastq_file_as_list(file_path):
         with open(file_path) as file:
             reads.append(file.readline() + file.readline() + file.readline() + file.readline())
     return reads
+
+# def save_tfrecord(path, content):
+#     print(content.shape)
+#     serialized_content = tf.io.serialize_tensor(content)
+#     print(tf.io.parse_tensor(serialized_content.numpy(), out_type=tf.float32).shape)
+#     with tf.io.TFRecordWriter(path) as writer:
+#         writer.write(serialized_content.numpy())
+#
+#
+# def parse_tensor_int8(x):
+#     return tf.io.parse_tensor(x, tf.float32)
+#
+#
+# def load_tfrecord(path):
+#     with open(path, 'rb') as reader:
+#         serialized_content = reader.read()
+#     return tf.io.parse_tensor(serialized_content)

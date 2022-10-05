@@ -3,8 +3,10 @@ import sys
 from os.path import exists
 
 import numpy as np
+import psutil
 import tensorflow as tf
 # from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import MeanSquaredError, KLD
 
@@ -17,25 +19,60 @@ from helpers.config import get_config
 from models.autoencoder import get_autoencoder_key_points
 from models.layers.cluster import ClusteringLayer
 
+values = psutil.virtual_memory()
+total = values.total >> 30
+print(total)
+# in bytes
 config = get_config()
 data = config['data']
+
+# print(tf.keras.backend.floatx())
+# keras_backend.set_floatx('float16')
+# print("Num GPUs Available: ", tf.config.list_physical_devices('GPU'))
+# physical_devices = tf.config.list_physical_devices('GPU')
+#
+# tf.config.set_visible_devices(physical_devices[1], 'GPU')
+# visible_devices = tf.config.get_visible_devices()
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
+# for device in visible_devices:
+#     assert device.device_type != 'GPU'
+# def prepare_data(x):
+#     return tf.random.normal((x, 1, 24))
+#
+#
+# def reduce_dimension(x):
+#     return tf.squeeze(x, axis=0)
+#
+
 if __name__ == '__main__':
+    print(tf.keras.backend.floatx())
     # TODO print config and info
     print('Python version: {}.{}.{}'.format(sys.version_info[0], sys.version_info[1], sys.version_info[2]))
     print('Tensorflow version: {}'.format(tf.__version__))
+    print('Numpy version: {}'.format(np.version.version))
     print(f'Working with {ColorCoding.OKGREEN}{data}{ColorCoding.ENDC} reads')
     number_of_files = one_hot.encode_sam()
-    # print(
-    #     f'Working with {ColorCoding.OKBLUE}created{ColorCoding.ENDC} reads')
-    # one_hot_encoded_reads, reads = create_data.create_reads()
-    # number_of_files = 1
 
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
+    # parsed = tf.io.parse_tensor(dataset, out_type=tf.uint8)
+    # parsed = tf.train.Example.FromString(raw_example.numpy())
+
+    # print(parsed)
+
+    # for d in dataset:
+    #     print(d)
+    values = psutil.virtual_memory()
+    print(values)
     if data == 'illumina':
+        # index = 0
+        # path_to_encoded_files = []
+        # while exists(config[data]['one_hot_path'] + '_' + str(index) + '.tfrecord'):
+        #     path_to_encoded_files.append(config[data]['one_hot_path'] + '_' + str(index) + '.tfrecord')
+        #     index += 1
+        # dataset = (tf.data.TFRecordDataset().map(parse_tensor_int8))
         one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_0')
         index = 1
         while exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'):
@@ -43,31 +80,94 @@ if __name__ == '__main__':
             index += 1
             print(exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'))
             one_hot_encoded_reads = tf.concat([one_hot_encoded_reads, next_one_hot_encoded_reads], axis=0)
-            print(one_hot_encoded_reads.shape)
     else:
         one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
-    # TODO uncomment
-    # number_of_batches = 200
-    number_of_batches = 200  # created
-    batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / number_of_batches))
 
+    # dataset_to_numpy = list(dataset.as_numpy_iterator())
+    # shape = tf.shape(dataset_to_numpy)
+    # print(shape)
+
+    # TODO ncomment
+    # dataset = Dataset.from_tensors(one_hot_encoded_reads)
+    # for data in dataset:
+    #     print(data.shape)
+    #     break
+    # dataset = dataset.batch(batch_size=32)
+    # for batch in dataset.take(4):
+    #     print([arr.numpy() for arr in batch])
+    # for element in dataset:
+    #     print(element.shape)
+
+    # for x3 in ds:
+    #     print(x3)
+    #     print(x3.shape)
+    #
+    # samples = 50
+    # dataset = tf.data.Dataset.range(samples)
+    #
+    # dataset = dataset.map(prepare_data)
+    # print('Before reducing dimension: ', dataset.element_spec)
+    # reduced_dataset = dataset.batch(1)
+    # batched_dataset = dataset.batch(2)
+    # # print(list(batched_dataset.as_numpy_iterator()))
+    # for batch in batched_dataset.take(1):
+    #     print('batch')
+    #     print(batch.shape)
+    #     for arr in batch:
+    #         print('arr')
+    #         print(arr.shape)
+    #
+    # dataset_to_numpy = list(dataset.as_numpy_iterator())
+    # shape = tf.shape(dataset_to_numpy)
+    # print(shape)
+    # dataset = dataset.map(reduce_dimension)
+    # print('After reducing dimension: ', dataset.element_spec)
+    # for element in dataset:
+    # print(element)
+    # print(element.shape)
+    # dataset_to_numpy = list(dataset.as_numpy_iterator())
+    # shape = tf.shape(dataset_to_numpy)
+    # print(shape)
+    # print('shape:', shape)
+    # exit(-1)
+    # 57360, 1000, 4, 1
+    # TODO fix with max number <
+    # number_of_batches = 200
+    # # number_of_batches = config[data]['number_of_batches']  # created
+    # batch_size = int(np.ceil(one_hot_encoded_reads.shape[0] / number_of_batches))
+    batch_size = 32
     # create autoencoder
+    print(f'{ColorCoding.OKGREEN}before{ColorCoding.ENDC}')
+
+    values = psutil.virtual_memory()
+    print(values)
+
     model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
+    # model_input, encoder_output, decoder_output = get_autoencoder_key_points((9850, 4, 1))
+    print(f'{ColorCoding.OKGREEN}Model build{ColorCoding.ENDC}')
     autoencoder = Model(inputs=model_input, outputs=decoder_output, name='autoencoder')
     # autoencoder = Autoencoder(one_hot_encoded_reads.shape[1:])
+    # adam = optimizer_v2.Adam(learning_rate=0.01)
     autoencoder.compile(optimizer='adam', loss=MeanSquaredError())
+    autoencoder.optimizer.lr.assign(0.001)
+
+    values = psutil.virtual_memory()
+    print(values)
+
+    # one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
+
     autoencoder.build(input_shape=one_hot_encoded_reads.shape)
 
-    autoencoder.summary()
-    batch_size = batch_size * 4
+    values = psutil.virtual_memory()
+    print(values)
 
     print('reads tensor shape:', one_hot_encoded_reads.shape)
     print('number of reads:', one_hot_encoded_reads.shape[0])
     print('batch_size:', batch_size)
-
+    print(one_hot_encoded_reads[1])
+    print([one_hot_encoded_reads[1]])
     # train autoencoder
     # if False:
-    #     exit(-1)
     if config['load'] and exists(config[data]['weights_path'] + '.index'):
         print(f'{ColorCoding.OKGREEN}Loading weights{ColorCoding.ENDC}')
         autoencoder.load_weights(config[data]['weights_path'])
@@ -76,7 +176,7 @@ if __name__ == '__main__':
         print(f'{ColorCoding.OKGREEN}Training Autoencoder{ColorCoding.ENDC}')
         autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
                         epochs=100,
-                        batch_size=batch_size * 4,
+                        batch_size=batch_size,
                         shuffle=True,
                         verbose=config['verbose'])
 
@@ -87,12 +187,13 @@ if __name__ == '__main__':
 
     encoder = Model(inputs=model_input, outputs=encoder_output, name='encoder')
     encoder.compile(optimizer='adam', loss=MeanSquaredError())
+    encoder.optimizer.lr.assign(0.001)
     encoder.summary()
     # train k-means
 
     # NEW outside not inside loop
     # todo uncomment
-    # prediction_for_kmeans_training = encoder.predict(one_hot_encoded_reads, verbose=1)  # TODO change to verbose
+    prediction_for_kmeans_training = encoder.predict(one_hot_encoded_reads, verbose=1)  # TODO change to verbose
     # max_clusters = config['max_clusters']
     # for n_clusters in range(1, max_clusters):
     for n_clusters in [config['n_clusters']]:
@@ -102,17 +203,17 @@ if __name__ == '__main__':
         print(f'{ColorCoding.OKGREEN}Initialize KMeans{ColorCoding.ENDC} for ' + str(n_clusters) + ' clusters (' + str(
             kmeans_rep) + ' times)')
         # TODO uncomment -->
-        # for i in range(kmeans_rep):
-        #     print('kmeans_rep:', i)
-        #     kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=0)  # TODO change to verbose
-        #     predicted_clusters = kmeans.fit_predict(prediction_for_kmeans_training)
-        #     consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-        #                                                                   predicted_clusters, n_clusters)
-        #     new_mec_results = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
-        #     print("mec", new_mec_results)
-        #     if i == 0 or best_mec_result > new_mec_results:
-        #         centroids = kmeans.cluster_centers_
-        #         best_mec_result = new_mec_results
+        for i in range(kmeans_rep):
+            print('kmeans_rep:', i)
+            kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=0)  # TODO change to verbose
+            predicted_clusters = kmeans.fit_predict(prediction_for_kmeans_training)
+            consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+                                                                          predicted_clusters, n_clusters)
+            new_mec_results = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+            print("mec", new_mec_results)
+            if i == 0 or best_mec_result > new_mec_results:
+                centroids = kmeans.cluster_centers_
+                best_mec_result = new_mec_results
         # TODO till here <--
 
         # take it all together and
@@ -143,16 +244,16 @@ if __name__ == '__main__':
         cae_model.compile(loss=[MeanSquaredError(), KLD],
                           loss_weights=[1 - lam, lam],
                           optimizer='adam')
-
+        cae_model.optimizer.lr.assign(0.001)
         # TODO delete incl. file
-        # with open("centroids", "wb") as fp:
-        #     pickle.dump(centroids, fp)
-        with open("centroids", "rb") as fp:
-            centroids = pickle.load(fp)
+        with open("centroids", "wb") as fp:
+            pickle.dump(centroids, fp)
+        # with open("centroids", "rb") as fp:
+        #     centroids = pickle.load(fp)
 
         cae_model.get_layer(name='clustering').set_weights([centroids])
-        cae_model.build(input_shape=one_hot_encoded_reads.shape)
-        cae_model.summary()
+        # cae_model.build(input_shape=one_hot_encoded_reads.shape)
+        # cae_model.summary()
 
         mec_results = []
 
@@ -160,9 +261,9 @@ if __name__ == '__main__':
         for epoch in range(20):  # TODO set to 2000
             print('epoch', epoch)
             _, clustering_output = cae_model.predict(one_hot_encoded_reads, verbose=1)
-            # # TODO delete incl. file
-            # with open("clustering_output", "wb") as fp:
-            #     pickle.dump(clustering_output, fp)
+            # TODO delete incl. file
+            with open("clustering_output", "wb") as fp:
+                pickle.dump(clustering_output, fp)
             # with open("clustering_output", "rb") as fp:
             #     clustering_output = pickle.load(fp)
             predicted_clusters = np.argmax(clustering_output, axis=1)
@@ -179,6 +280,8 @@ if __name__ == '__main__':
             decoded_sequences = one_hot.decode(consensus_sequences)
             for decoded_sequence in decoded_sequences:
                 print(decoded_sequence)
+            # break
+
             new_mec_results = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
             print(new_mec_results)
             # build clustering output per read depending on hamming distance at non-zero places
@@ -246,6 +349,8 @@ if __name__ == '__main__':
         #         autoencoder.save(
         #             './results/models/created_weights_' + str(config['number_of_strains']) + '_' + str(
         #                 config['read_length']) + '_' + str(config['min_number_of_reads_per_strain']))
-    performance.correct_phasing_rate(consensus_sequences)
+    min_sum, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences)
+    with open("CPR", "wb") as fp:
+        pickle.dump([min_sum, min_indexes, cpr], fp)
     # print(tf.squeeze(output_encoder, [0]).shape)
     print(f'{ColorCoding.OKGREEN}FINITO{ColorCoding.ENDC}')

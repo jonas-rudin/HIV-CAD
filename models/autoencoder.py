@@ -10,12 +10,14 @@ data = config['data']
 
 def get_autoencoder_key_points(input_shape):
     # input layer
+    base_filter = 16
     model_input = Input(
         shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
+    # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
 
     # 1. layer
     encoder_conv2d_1 = Conv2D(
-        filters=32,
+        filters=base_filter,
         kernel_size=[5, 4],
         strides=(1, 4),
         padding='same',
@@ -24,7 +26,7 @@ def get_autoencoder_key_points(input_shape):
     encoder_dropout_1 = Dropout(0, name='encoder_Dropout_1')(encoder_prelu_1)
 
     # 2. layer
-    encoder_conv2d_2 = Conv2D(filters=64,
+    encoder_conv2d_2 = Conv2D(filters=base_filter * 2,
                               kernel_size=[5, 1],
                               strides=(1, 1),
                               padding='same',
@@ -33,7 +35,7 @@ def get_autoencoder_key_points(input_shape):
     encoder_dropout_2 = Dropout(0, name='encoder_Dropout_2')(encoder_prelu_2)
 
     # 3. layer
-    encoder_conv2d_3 = Conv2D(filters=128,
+    encoder_conv2d_3 = Conv2D(filters=base_filter * 4,
                               kernel_size=[3, 1],
                               strides=(1, 1),
                               padding='same', name='encoder_Conv2D_3')(encoder_dropout_2)
@@ -47,17 +49,17 @@ def get_autoencoder_key_points(input_shape):
     output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
         encoder_flatten_4)
 
-    decoder_dense_1 = Dense(units=128 * input_shape[0], name='decoder_Dense_1')(output_encoder)
+    decoder_dense_1 = Dense(units=base_filter * 4 * input_shape[0], name='decoder_Dense_1')(output_encoder)
     decoder_prelu_2 = PReLU(name='decoder_PReLU_2')(decoder_dense_1)
-    decoder_reshape_2 = Reshape((input_shape[0], 1, 128), name='decoder_Reshape_2')(decoder_prelu_2)
-    decoder_conv2dtranspose_3 = Conv2DTranspose(filters=64,
+    decoder_reshape_2 = Reshape((input_shape[0], 1, base_filter * 4), name='decoder_Reshape_2')(decoder_prelu_2)
+    decoder_conv2dtranspose_3 = Conv2DTranspose(filters=base_filter * 2,
                                                 kernel_size=[3, 1],
                                                 strides=(1, 1),
                                                 padding='same',
                                                 name='decoder_Conv2DTranspose_3')(decoder_reshape_2)
     decoder_prelu_3 = PReLU(name='decoder_PReLU_3')(decoder_conv2dtranspose_3)
     decoder_dropout_3 = Dropout(0, name='decoder_Dropout_3')(decoder_prelu_3)
-    decoder_conv2dtranspose_4 = Conv2DTranspose(filters=32,
+    decoder_conv2dtranspose_4 = Conv2DTranspose(filters=base_filter,
                                                 kernel_size=[5, 1],
                                                 strides=(1, 1),
                                                 padding='same',
@@ -72,14 +74,6 @@ def get_autoencoder_key_points(input_shape):
     decoder_prelu_5 = PReLU(name='decoder_PReLU_5')(decoder_conv2dtranspose_5)
     decoder_output = Dropout(0, name='decoder_Dropout_5')(decoder_prelu_5)
 
-    # autoencoder = Model(inputs=encoder_input_0, outputs=decoder_dropout_5)
-    #
-    # encoder = Model(inputs=encoder_input_0, outputs=encoder_dense_5)
-    #
-    # models = []
-    # for i in range(config['max_cluster']):
-    #     clustering_layer = ClusteringLayer(n_clusters=i, name='clustering')(encoder_dense_5)
-    #     models.append(Model(inputs=encoder_input_0, outputs=[decoder_dropout_5, clustering_layer]))
     return model_input, output_encoder, decoder_output
 
 

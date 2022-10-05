@@ -106,6 +106,9 @@ def encode_sam():
         one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
 
         # save
+        # save_tfrecord(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
+        print(one_hot_encoded_reads_tensor.shape)
+        print(one_hot_encoded_reads_tensor[0])
         save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
 
@@ -120,7 +123,7 @@ def encode_sam():
                 counter += 1
                 if counter % 25000 == 0:
                     print(counter)
-                    if counter % 250000 == 0:
+                    if counter % 200000 == 0:
                         one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads),
                                                                       axis=3)
                         # save
@@ -149,7 +152,7 @@ def encode_fasta():
     names_of_variants = []
     print('reading file: REF.fasta')
     # read file line by line and one hot encode reads
-    with open(config['ref_path'] + '.fasta') as file:
+    with open(config[data]['ref_path'] + '.fasta') as file:
         for line in file:
             if line.find('>') == -1:
                 # TODO get postition from alignment
