@@ -16,12 +16,9 @@ import performance
 from helpers.IO import load_tensor_file
 from helpers.colors_coding import ColorCoding
 from helpers.config import get_config
-from models.autoencoder import get_autoencoder_key_points
+from models.autoencoder import get_autoencoder_key_points_with_pooling
 from models.layers.cluster import ClusteringLayer
 
-# values = psutil.virtual_memory()
-# total = values.total >> 30
-print(total)
 # in bytes
 config = get_config()
 data = config['data']
@@ -37,13 +34,7 @@ print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 # for device in visible_devices:
 #     assert device.device_type != 'GPU'
-# def prepare_data(x):
-#     return tf.random.normal((x, 1, 24))
-#
-#
-# def reduce_dimension(x):
-#     return tf.squeeze(x, axis=0)
-#
+
 
 if __name__ == '__main__':
     print(tf.keras.backend.floatx())
@@ -54,25 +45,19 @@ if __name__ == '__main__':
     print(f'Working with {ColorCoding.OKGREEN}{data}{ColorCoding.ENDC} reads')
     number_of_files = one_hot.encode_sam()
 
+    # generator stuff
+    # _, _, files = next(os.walk(config[data]['one_hot_path']))
+    # number_of_batches = len(files)
+    # print('number_of_batches', number_of_batches)
+    # file_names = [*range(number_of_batches)]
+    # shuffle(file_names)
+    # print(file_names)
+    # autoencoder_generator = AutoencoderGenerator(file_names, number_of_batches)
+
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
-    # parsed = tf.io.parse_tensor(dataset, out_type=tf.uint8)
-    # parsed = tf.train.Example.FromString(raw_example.numpy())
-
-    # print(parsed)
-
-    # for d in dataset:
-    #     print(d)
-    # values = psutil.virtual_memory()
-    # print(values)
     if data == 'illumina':
-        # index = 0
-        # path_to_encoded_files = []
-        # while exists(config[data]['one_hot_path'] + '_' + str(index) + '.tfrecord'):
-        #     path_to_encoded_files.append(config[data]['one_hot_path'] + '_' + str(index) + '.tfrecord')
-        #     index += 1
-        # dataset = (tf.data.TFRecordDataset().map(parse_tensor_int8))
         one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_0')
         index = 1
         while exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'):
@@ -81,56 +66,14 @@ if __name__ == '__main__':
             print(exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'))
             one_hot_encoded_reads = tf.concat([one_hot_encoded_reads, next_one_hot_encoded_reads], axis=0)
     else:
+        # print('not loading data')
         one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
 
-    # dataset_to_numpy = list(dataset.as_numpy_iterator())
-    # shape = tf.shape(dataset_to_numpy)
-    # print(shape)
-
-    # TODO ncomment
-    # dataset = Dataset.from_tensors(one_hot_encoded_reads)
-    # for data in dataset:
-    #     print(data.shape)
-    #     break
-    # dataset = dataset.batch(batch_size=32)
-    # for batch in dataset.take(4):
-    #     print([arr.numpy() for arr in batch])
-    # for element in dataset:
-    #     print(element.shape)
-
-    # for x3 in ds:
-    #     print(x3)
-    #     print(x3.shape)
-    #
-    # samples = 50
-    # dataset = tf.data.Dataset.range(samples)
-    #
-    # dataset = dataset.map(prepare_data)
-    # print('Before reducing dimension: ', dataset.element_spec)
-    # reduced_dataset = dataset.batch(1)
-    # batched_dataset = dataset.batch(2)
-    # # print(list(batched_dataset.as_numpy_iterator()))
-    # for batch in batched_dataset.take(1):
-    #     print('batch')
-    #     print(batch.shape)
-    #     for arr in batch:
-    #         print('arr')
-    #         print(arr.shape)
-    #
-    # dataset_to_numpy = list(dataset.as_numpy_iterator())
-    # shape = tf.shape(dataset_to_numpy)
-    # print(shape)
-    # dataset = dataset.map(reduce_dimension)
-    # print('After reducing dimension: ', dataset.element_spec)
-    # for element in dataset:
-    # print(element)
-    # print(element.shape)
-    # dataset_to_numpy = list(dataset.as_numpy_iterator())
-    # shape = tf.shape(dataset_to_numpy)
-    # print(shape)
-    # print('shape:', shape)
+    dataset = tf.data.Dataset.from_tensors((one_hot_encoded_reads, one_hot_encoded_reads))
+    number_of_batches = config[data]['haplotype_length']
+    dataset.shuffle(10).batch(number_of_batches)
+    print(dataset.element_spec)
     # exit(-1)
-    # 57360, 1000, 4, 1
     # TODO fix with max number <
     # number_of_batches = 200
     # # number_of_batches = config[data]['number_of_batches']  # created
@@ -142,7 +85,11 @@ if __name__ == '__main__':
     # values = psutil.virtual_memory()
     # print(values)
 
-    model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
+    # model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
+    model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
+        one_hot_encoded_reads.shape[1:])
+    # model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
+    #     (9850, 4, 1))
     # model_input, encoder_output, decoder_output = get_autoencoder_key_points((9850, 4, 1))
     print(f'{ColorCoding.OKGREEN}Model build{ColorCoding.ENDC}')
     autoencoder = Model(inputs=model_input, outputs=decoder_output, name='autoencoder')
@@ -161,12 +108,13 @@ if __name__ == '__main__':
     autoencoder.summary()
     # values = psutil.virtual_memory()
     # print(values)
-
+    # print(autoencoder_generator.__getitem__(0))
+    # exit(-1)
     print('reads tensor shape:', one_hot_encoded_reads.shape)
     print('number of reads:', one_hot_encoded_reads.shape[0])
     print('batch_size:', batch_size)
-    print(one_hot_encoded_reads[1])
-    print([one_hot_encoded_reads[1]])
+    # print(one_hot_encoded_reads[1])
+    # print([one_hot_encoded_reads[1]])
     # train autoencoder
     # if False:
     if config['load'] and exists(config[data]['weights_path'] + '.index'):
@@ -174,12 +122,24 @@ if __name__ == '__main__':
         autoencoder.load_weights(config[data]['weights_path'])
 
     else:
-        print(f'{ColorCoding.OKGREEN}Training Autoencoder{ColorCoding.ENDC}')
-        autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
-                        epochs=100,
-                        batch_size=batch_size,
-                        shuffle=True,
+        # print(f'{ColorCoding.OKGREEN}Training Autoencoder{ColorCoding.ENDC}')
+        # autoencoder.fit(x=autoencoder_generator,
+        #                 epochs=10,
+        #                 verbose=1,
+        #                 steps_per_epoch=number_of_batches)
+        #
+        # exit(-1)
+        autoencoder.fit(x=dataset,
+                        epochs=10,
+                        # batch_size=batch_size,
+                        # shuffle=True,
                         verbose=config['verbose'])
+
+        # autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
+        #                 epochs=100,
+        #                 batch_size=batch_size,
+        #                 shuffle=True,
+        #                 verbose=config['verbose'])
 
         print(f'{ColorCoding.OKGREEN}Saving Weights{ColorCoding.ENDC}')
         autoencoder.save_weights(config[data]['weights_path'])

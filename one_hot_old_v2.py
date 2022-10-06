@@ -65,10 +65,6 @@ def encode_sam():
         if config['load'] and exists(config[data]['one_hot_path'] + '_0.npy'):
             print('reads are already one hot encoded')
             return
-    # elif data == 454:
-    #     if config['load'] and exists(config[data]['one_hot_path'] + '0.npy'):
-    #         print('reads are already one hot encoded')
-    #         return
     else:
         if config['load'] and exists(config[data]['one_hot_path'] + '.npy'):
             print('reads are already one hot encoded')
@@ -107,44 +103,12 @@ def encode_sam():
                 counter += 1
                 if counter % 25000 == 0:
                     print(counter)
-        if len(one_hot_encoded_reads) % 4 != 0:
-            empty_read = encode_read(0, '', config[data]['haplotype_length'])
-            for i in range(len(one_hot_encoded_reads) % 4):
-                one_hot_encoded_reads.append(empty_read)
         one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
 
         # save
-
         save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
 
-    # elif data == 454:
-    #     with open(config[data]['mapped_reads_path']) as file:
-    #         counter = 0
-    #         file_index = 0
-    #         for line in file:
-    #             one_hot_encoded_read = encode_read(int(line.split('\t')[3]), line.split('\t')[9],
-    #                                                config[data]['haplotype_length'])
-    #             one_hot_encoded_reads.append(one_hot_encoded_read)
-    #             counter += 1
-    #             if counter % 25000 == 0:
-    #                 print(counter)
-    #             if counter % config[data]['batch_size'] == 0:
-    #                 one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads),
-    #                                                               axis=3)
-    #                 # save
-    #                 print('Reads are one hot encoded and saved. file index:', file_index)
-    #
-    #                 save_tensor_file(config[data]['one_hot_path'] + str(file_index),
-    #                                  one_hot_encoded_reads_tensor)
-    #                 file_index += 1
-    #                 one_hot_encoded_reads = []
-    #     one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_reads), axis=3)
-    #
-    #     # save
-    #
-    #     save_tensor_file(config[data]['one_hot_path'] + str(file_index), one_hot_encoded_reads_tensor)
-    #     print('Reads are one hot encoded and saved.')
     else:
         file_index = 0
         with open(config[data]['mapped_reads_path']) as file:

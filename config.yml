@@ -6,7 +6,7 @@ haplotype_file_path: "./data/reference//REF.fasta"
 name: "HIV_CAD"
 save: True
 load: True
-data: 454
+data: created
 # illumina, 454, created or testing
 alignment: ngs_alignment # de_novo_alignment or ngs_alignment
 #data: created
@@ -21,12 +21,12 @@ n_clusters: 5
 verbose: 1 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
 max_cluster: 5
 
-number_of_reads_per_file: 100000
+number_of_reads_per_file: 10000
 
 # create Data
 number_of_strains: 5 # [1...5]
 read_length: 200
-min_number_of_reads_per_strain: 30000
+min_number_of_reads_per_strain: 10000
 
 # alignment
 min_alignment_score: 60
@@ -48,6 +48,7 @@ ref_path: ./data/reference/REF
   reads_path: ./data/454
   mapped_reads_path: ./data/454_mapped.sam
   one_hot_path: ./data/454_encoded_reads
+  #  one_hot_path: ./data/454/encoded/
   cluster_path: ./results/clusters/
   aligned_path: ./results/aligned/
   autoencoder_weights_path: ./results/models/autoencoder_weights
@@ -56,7 +57,9 @@ ref_path: ./data/reference/REF
   ref_path: ./data/reference/454_REF
   unaligned_ref_path: ./data/reference/unaligned_454_REF
   number_of_batches: 100000
-  haplotype_length: 9850
+  batch_size: 32
+  #  haplotype_length: 5000
+  haplotype_length: 9720
 
 illumina:
   reads_path: ./data/Illumina
@@ -84,13 +87,15 @@ created:
   reads_path: ./data/created
   mapped_reads_path: ./data/created_mapped.sam
   one_hot_path: ./data/created_encoded_reads
-  weights_path: ./results/models/created_weights
-  output_path: ./results/created_output.fasta
+  weights_path: ./results/models/created_weights_dataset
+  output_path: ./results/created_output_dataset.fasta
   ref_path: ./data/reference/created_REF
+  ref_path:
   unaligned_ref_path: ./data/reference/unaligned_created_REF
   og_path: ./data/reference/created_og_REF.fasta
   haplotype_length: 1000
   number_of_batches: 1000
+  batch_size: 100
 
 
 
