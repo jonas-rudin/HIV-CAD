@@ -177,10 +177,6 @@ def encode_sam():
 
 
 def encode_fasta():
-    if config['load'] and exists(config[data]['ref_path'] + '.npy'):
-        print('sequences are already one hot encoded')
-        return
-
     one_hot_encoded_sequences = []
     names_of_variants = []
     print('reading file: REF.fasta')

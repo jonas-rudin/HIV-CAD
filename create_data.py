@@ -3,6 +3,7 @@ from random import randint, shuffle, uniform, choice
 import numpy as np
 
 from helpers.IO import save_text
+from helpers.colors_coding import ColorCoding
 from helpers.config import get_config
 
 config = get_config()
@@ -14,13 +15,17 @@ bases = ['A', 'C', 'G', 'T']
 # ignoring difference in homopolymeric and non-homopolymeric regions
 # ignoring insertions
 # TODO add insertions?
-def add_error_or_mutation(sequence, error):
+def add_error_or_mutation(sequence, error):  # , strain=False):
     i = 0
+    # split = ''
+    # if strain:
+    #     split = '-'
     while i < (len(sequence)):
         if uniform(0, 1) < error:
             # if random base = base -> remove base from read
             replacement_base = choice(bases)
             if sequence[i] == replacement_base:
+                # sequence = sequence[:i] + split + sequence[i + 1:]
                 sequence = sequence[:i] + sequence[i + 1:]
                 continue
             else:
@@ -44,13 +49,13 @@ def cut_into_reads(dna, length, amount, name_of_strain):
             read = add_error_or_mutation(dna[first_index:last_index], error)
             # make read fastq
             dna_reads.append(
-                '@' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
+                '@c' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
             counter += 1
             first_index = last_index
             last_index += length + int(np.random.normal(0, length * 0.2, 1)[0])
         read = add_error_or_mutation(dna[first_index:len(dna)], error)
         # make read fastq
-        dna_reads.append('@' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
+        dna_reads.append('@c' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
         counter += 1
     # shuffle and remove every second element to reduce pattern in produced reads
     shuffle(dna_reads)
@@ -64,14 +69,14 @@ def create_reference(length, number_of_strains):
     snp_frequency = 0.0778
     mutations = []
     for _ in range(number_of_strains):
-        mutations.append(add_error_or_mutation(og_strain, snp_frequency))
+        mutations.append(add_error_or_mutation(og_strain, snp_frequency))  # , strain=True))
     return og_strain, mutations
 
 
 # create reads
 if __name__ == '__main__':
     if data != 'created':
-        print('Set data to created in config')
+        print(f'{ColorCoding.WARNING}Set data to created in config{ColorCoding.ENDC}')
         exit(-1)
 
     haplotype_length = config[data]['haplotype_length']
@@ -82,11 +87,18 @@ if __name__ == '__main__':
 
     og_strain, mutated_strains = create_reference(haplotype_length, number_of_strains)
     print(len(mutated_strains))
+    longest = max(mutated_strains, key=len)
+    index = mutated_strains.index(longest)
+    print(longest)
+    print(index)
     fasta_encoded = ''
     for i in range(len(mutated_strains)):
         fasta_encoded += '>' + str(i) + '\n' + mutated_strains[i] + '\n'
     save_text(config[data]['ref_path'] + '.fasta', fasta_encoded[:-1])
+
     save_text(config[data]['og_path'], '>OG\n' + og_strain)
+    save_text(config[data]['longest_path'], '>c' + str(index) + '\n' + longest)
+
     reads = []
     f = open(config['created']['ref_path'] + '.fasta', 'r')
     for _ in range(number_of_strains):
@@ -95,7 +107,10 @@ if __name__ == '__main__':
         # create reads
         # add variation in amount of reads per strain
         min_number_of_reads = min_number_of_reads_per_strain + min_number_of_reads_per_strain * uniform(-0.2, 0.2)
-        reads.extend(cut_into_reads(f.readline()[:-1], read_length, min_number_of_reads, name_of_strain))
+        dna = (f.readline()[:-1])  # .replace('-', '')
+        reads.extend(
+            cut_into_reads(dna, read_length, min_number_of_reads, name_of_strain))
     shuffle(reads)
     save_text(config[data]['reads_path'] + '.fastq', '\n'.join(reads))
+    print
     print('data created')

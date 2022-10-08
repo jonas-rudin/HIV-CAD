@@ -21,20 +21,21 @@ n_clusters: 5
 verbose: 1 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
 max_cluster: 5
 
-number_of_reads_per_file: 10000
-
+number_of_reads_per_file: 1
 # create Data
 number_of_strains: 5 # [1...5]
 read_length: 200
-min_number_of_reads_per_strain: 10000
+min_number_of_reads_per_strain: 20000
 
 # alignment
 min_alignment_score: 60
 min_read_length: 150
+batch_size: 100
 
 # path
 hxb2_path: ./data/reference/hxb2.fasta
-ref_path: ./data/reference/REF
+#ref_path: ./data/reference/REF
+ref_path: ./data/reference/REF_aligned
 
 #created:
 #  reads_path: ./data/created/reads
@@ -57,9 +58,10 @@ ref_path: ./data/reference/REF
   ref_path: ./data/reference/454_REF
   unaligned_ref_path: ./data/reference/unaligned_454_REF
   number_of_batches: 100000
-  batch_size: 32
+  batch_size: 100
   #  haplotype_length: 5000
-  haplotype_length: 9720
+  haplotype_length: 4860
+  centroids_name: centroids
 
 illumina:
   reads_path: ./data/Illumina
@@ -71,6 +73,8 @@ illumina:
   unaligned_ref_path: ./data/reference/unaligned_illumina_REF
   haplotype_length: 9721
   number_of_batches: 9721
+  centroids_name: illumina_centroids
+  batch_size: 100
 
 testing:
   reads_path: ./data/Illumina # Illumina or 454
@@ -82,6 +86,8 @@ testing:
   unaligned_ref_path: ./data/reference/unaligned_testing_REF
   haplotype_length: 500
   number_of_batches: 1000
+  centroids_name: testing_centroids
+  batch_size: 100
 
 created:
   reads_path: ./data/created
@@ -89,13 +95,15 @@ created:
   one_hot_path: ./data/created_encoded_reads
   weights_path: ./results/models/created_weights_dataset
   output_path: ./results/created_output_dataset.fasta
+  #  ref_path: ./data/reference/created_REF
   ref_path: ./data/reference/created_REF
-  ref_path:
   unaligned_ref_path: ./data/reference/unaligned_created_REF
   og_path: ./data/reference/created_og_REF.fasta
+  longest_path: ./data/reference/created_longest_REF.fasta
   haplotype_length: 1000
   number_of_batches: 1000
   batch_size: 100
+  centroids_name: created_centroids
 
 
 

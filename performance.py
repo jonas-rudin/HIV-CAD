@@ -36,30 +36,23 @@ def correct_phasing_rate(consensus_sequences):
 
     if len(consensus_sequences) != len(reference_sequences):
         print(
-            'number of consensus sequences and reference sequences mismatch,' + 'correction phasing rate can\'t be calculated')
+            'number of consensus sequences and reference sequences mismatch, correction phasing rate can\'t be '
+            'calculated')
         return
     distances = np.zeros((len(consensus_sequences), len(reference_sequences)))
-    for cs_index in range(len(consensus_sequences)):
-        for ref_index in range(len(reference_sequences)):
+    for cs_index, consensus_sequence in enumerate(consensus_sequences):
+        for ref_index, reference_sequence in enumerate(reference_sequences):
             print('ref_index', ref_index)
             # TODO New
             hd_per_ref = []
-            reference_sequence = reference_sequences[ref_index]
-            # print(reference_sequence.shape)
-            # print(reference_sequence[0])
-            # print(reference_sequence[-1])
             if np.sum(reference_sequence[-1]) != 0:
-                # print('only one')
-                hd_per_ref.append(hamming_distance(consensus_sequences[cs_index], reference_sequence))
+                hd_per_ref.append(hamming_distance(consensus_sequence, reference_sequence))
             else:
-                # print('last')
                 for index in range(len(reference_sequence - 1), -1, -1):
-                    # print('index', index)
                     reference_sequence = np.roll(reference_sequence, 1, axis=0)
                     if np.sum(reference_sequence[-1]) != 0:
-                        # print('reference_sequence[-1]', reference_sequence[-1])
                         break
-                    hd_per_ref.append(hamming_distance(consensus_sequences[cs_index], reference_sequence))
+                    hd_per_ref.append(hamming_distance(consensus_sequence, reference_sequence))
             print('hd_per_ref', hd_per_ref)
             print('min(hd_per_ref)', min(hd_per_ref))
             distances[cs_index][ref_index] = min(hd_per_ref)

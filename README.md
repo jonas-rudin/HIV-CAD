@@ -31,8 +31,6 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 
 - l/4 -> check SNP rate -> align and compare 5 strains (eg HD)
 - clean data beforehand? remove short reads? no
-- 5881/5881 [==============================] - 828s 141ms/step - loss: 5.3851e-05 => overfitting no problem? kind of
-  should be.
 - remove no interesting (no SNPs)
 - might not work for too many cluster => test with generated data
 - small batch size problem?
@@ -42,6 +40,11 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 - check autoencoder bach_size on input vs on training
 
 ## TODO
+
+- adapt CPR for shorter version of 454 for example
+- CHI: what is correction doing?
+- CHI: what is the best way to compare created data?
+
 
 - align sequences and get difference of
 - look at chi's solution possible runtime improvement
@@ -53,22 +56,9 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 
 # TODO text
 
-- install texit
-- us uni vorlage
-- create structure
 - measure time
 - limitations -> no new alignment (or maybe do de nove first -> align and see?)
 - illumina vs 454 better error rate but less data -> data overweights here? maybe?
 - filter data might make it to rough for distant mutations
-
-1. Abstract
-2. Introduction
-3. Related Work
-4. Methods
-5. Results
-    1. time and reconstruction
-    2. Discussion
-    3. created vs tested vs 454 vs illumina vs compressed
-6. Conclusion
 
 ssh rudjon00@dmi-wheatstone.dmi.unibas.ch
