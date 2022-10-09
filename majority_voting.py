@@ -1,5 +1,7 @@
 import numpy as np
 
+import performance
+
 
 def majority_vote_alignment(clustered_reads):
     clustered_reads_sum = clustered_reads.sum(axis=0)
@@ -18,3 +20,13 @@ def align_reads_per_cluster(reads, predicted_clusters, n_clusters):
         reads_of_cluster_n = reads[np.where(predicted_clusters_array == i)[0]]
         majority_consensus_sequences.append(majority_vote_alignment(reads_of_cluster_n))
     return majority_consensus_sequences
+
+
+def assign_reads_to_best_fitting_consensus_sequence(n_reads, n_clusters, consensus_sequences, one_hot_encoded_reads):
+    predicted_clusters = np.zeros((n_reads, n_clusters), dtype=int)
+    for read_index in range(n_reads):
+        hd = []
+        for consensus_sequence in consensus_sequences:
+            hd.append(performance.hamming_distance(one_hot_encoded_reads[read_index], consensus_sequence))
+        predicted_clusters[read_index][np.argmin(hd)] = 1
+    return predicted_clusters

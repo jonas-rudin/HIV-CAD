@@ -42,9 +42,6 @@ HIV Haplotype Inference Using a Convolutional Auto-Encoder
 ## TODO
 
 - adapt CPR for shorter version of 454 for example
-- CHI: what is correction doing?
-- CHI: what is the best way to compare created data?
-
 
 - align sequences and get difference of
 - look at chi's solution possible runtime improvement

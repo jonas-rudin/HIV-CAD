@@ -24,8 +24,8 @@ max_cluster: 5
 number_of_reads_per_file: 1
 # create Data
 number_of_strains: 5 # [1...5]
-read_length: 200
-min_number_of_reads_per_strain: 20000
+read_length: 500
+min_number_of_reads_per_strain: 25000
 
 # alignment
 min_alignment_score: 60
@@ -48,20 +48,24 @@ ref_path: ./data/reference/REF_aligned
 454:
   reads_path: ./data/454
   mapped_reads_path: ./data/454_mapped.sam
-  one_hot_path: ./data/454_encoded_reads
+  #  one_hot_path: ./data/454_encoded_reads
+  one_hot_path: ./data/454_encoded_reads_2432
   #  one_hot_path: ./data/454/encoded/
   cluster_path: ./results/clusters/
   aligned_path: ./results/aligned/
   autoencoder_weights_path: ./results/models/autoencoder_weights
   output_path: ./results/454_output.fasta
-  weights_path: ./results/models/454_weights
+  #  weights_path: ./results/models/454_weights
+  weights_path: ./results/models/454_weights_2432
   ref_path: ./data/reference/454_REF
   unaligned_ref_path: ./data/reference/unaligned_454_REF
   number_of_batches: 100000
   batch_size: 100
   #  haplotype_length: 5000
-  haplotype_length: 4860
-  centroids_name: centroids
+  #  haplotype_length: 4860
+  haplotype_length: 2432
+  #  centroids_name: centroids
+  centroids_name: centroids_2432
 
 illumina:
   reads_path: ./data/Illumina
@@ -100,10 +104,11 @@ created:
   unaligned_ref_path: ./data/reference/unaligned_created_REF
   og_path: ./data/reference/created_og_REF.fasta
   longest_path: ./data/reference/created_longest_REF.fasta
-  haplotype_length: 1000
+  haplotype_length: 2000
   number_of_batches: 1000
   batch_size: 100
   centroids_name: created_centroids
+  coverage: 5
 
 
 
