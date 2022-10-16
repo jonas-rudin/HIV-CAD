@@ -13,7 +13,7 @@ def get_autoencoder_key_points(input_shape):
     # input layer
     base_filter = 16
     model_input = Input(
-        shape=(input_shape[0], input_shape[1], input_shape[2]), sparse=True, name='encoder_Input_0')
+        shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
 
     # 1. layer
@@ -82,10 +82,7 @@ def get_autoencoder_key_points_with_pooling(input_shape):
     # input layer
     base_filter = 16
     model_input = Input(
-        shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0',
-        # sparse=True,
-        # batch_size=batch_size
-    )
+        shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
 
     # 1. layer
@@ -105,20 +102,20 @@ def get_autoencoder_key_points_with_pooling(input_shape):
                               padding='same',
                               name='encoder_Conv2D_2')(encoder_dropout_1)
     encoder_prelu_2 = PReLU(name='encoder_PReLU_2')(encoder_conv2d_2)
-    encoder_pooling_2 = AvgPool2D((1, 1), strides=(2, 2))(encoder_prelu_2)
-    encoder_dropout_2 = Dropout(0, name='encoder_Dropout_2')(encoder_pooling_2)
+    encoder_dropout_2 = Dropout(0, name='encoder_Dropout_2')(encoder_prelu_2)
 
+    encoder_pooling_2 = AvgPool2D((1, 1), strides=(2, 2))(encoder_dropout_2)
     # 3. layer
     encoder_conv2d_3 = Conv2D(filters=base_filter * 4,
                               kernel_size=[3, 1],
                               strides=(1, 1),
-                              padding='same', name='encoder_Conv2D_3')(encoder_dropout_2)
+                              padding='same', name='encoder_Conv2D_3')(encoder_pooling_2)
     encoder_prelu_3 = PReLU(name='encoder_PReLU_3')(encoder_conv2d_3)
-    encoder_pooling_3 = AvgPool2D((1, 1), strides=(2, 2))(encoder_prelu_3)
-    encoder_dropout_3 = Dropout(0, name='encoder_Dropout_3')(encoder_pooling_3)
+    encoder_dropout_3 = Dropout(0, name='encoder_Dropout_3')(encoder_prelu_3)
+    encoder_pooling_3 = AvgPool2D((1, 1), strides=(2, 2))(encoder_dropout_3)
 
     # 4. layer
-    encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_dropout_3)
+    encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_pooling_3)
     # 5. layer
     # TODO replace all others
     output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
@@ -128,24 +125,24 @@ def get_autoencoder_key_points_with_pooling(input_shape):
 
     decoder_dense_1 = Dense(units=encoder_flatten_4.shape[1], name='decoder_Dense_1')(output_encoder)
     decoder_prelu_2 = PReLU(name='decoder_PReLU_2')(decoder_dense_1)
-    decoder_reshape_2 = Reshape((encoder_dropout_3.shape[1], encoder_dropout_3.shape[2], encoder_dropout_3.shape[3]),
+    decoder_reshape_2 = Reshape((encoder_pooling_3.shape[1], encoder_pooling_3.shape[2], encoder_pooling_3.shape[3]),
                                 name='decoder_Reshape_2')(decoder_prelu_2)
+    decoder_up_samling_3 = UpSampling2D((2, 1))(decoder_reshape_2)
     decoder_conv2dtranspose_3 = Conv2DTranspose(filters=base_filter * 2,
                                                 kernel_size=[3, 1],
                                                 strides=(1, 1),
                                                 padding='same',
-                                                name='decoder_Conv2DTranspose_3')(decoder_reshape_2)
+                                                name='decoder_Conv2DTranspose_3')(decoder_up_samling_3)
     decoder_prelu_3 = PReLU(name='decoder_PReLU_3')(decoder_conv2dtranspose_3)
-    decoder_up_samling_3 = UpSampling2D((2, 1))(decoder_prelu_3)
-    decoder_dropout_3 = Dropout(0, name='decoder_Dropout_3')(decoder_up_samling_3)
+    decoder_dropout_3 = Dropout(0, name='decoder_Dropout_3')(decoder_prelu_3)
+    decoder_up_samling_4 = UpSampling2D((2, 1))(decoder_dropout_3)
     decoder_conv2dtranspose_4 = Conv2DTranspose(filters=base_filter,
                                                 kernel_size=[5, 1],
                                                 strides=(1, 1),
                                                 padding='same',
-                                                name='decoder_Conv2DTranspose_4')(decoder_dropout_3)
+                                                name='decoder_Conv2DTranspose_4')(decoder_up_samling_4)
     decoder_prelu_4 = PReLU(name='decoder_PReLU_4')(decoder_conv2dtranspose_4)
-    decoder_up_samling_4 = UpSampling2D((2, 1))(decoder_prelu_4)
-    decoder_dropout_4 = Dropout(0, name='decoder_Dropout_4')(decoder_up_samling_4)
+    decoder_dropout_4 = Dropout(0, name='decoder_Dropout_4')(decoder_prelu_4)
     decoder_conv2dtranspose_5 = Conv2DTranspose(filters=1,
                                                 kernel_size=[5, 4],
                                                 strides=(1, 4),
@@ -162,8 +159,6 @@ def get_autoencoder_key_points_with_pooling_with_relu(input_shape):
     base_filter = 16
     model_input = Input(
         shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0',
-        # sparse=True,
-        # batch_size=batch_size
     )
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
 

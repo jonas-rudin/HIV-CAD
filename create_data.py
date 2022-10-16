@@ -13,27 +13,31 @@ bases = ['A', 'C', 'G', 'T']
 
 
 # ignoring difference in homopolymeric and non-homopolymeric regions
-# ignoring insertions
-# TODO add insertions?
-def add_error_or_mutation(sequence, error):  # , strain=False):
+def add_error_or_mutation(sequence, error):
     i = 0
-    # split = ''
-    # if strain:
-    #     split = '-'
+    insertions = 0
     while i < (len(sequence)):
         if uniform(0, 1) < error:
             # if random base = base -> remove base from read
-            replacement_base = choice(bases)
-            if sequence[i] == replacement_base:
-                if uniform(0, 1) < 0.5:
-                    # sequence = sequence[:i] + split + sequence[i + 1:]
+            replacement_base = choice(bases + ['I'])
+            # insertion
+            if replacement_base == 'I':
+                insertions += 1
+                # if more insertions than deletions do deletion
+                if insertions > 0:
                     sequence = sequence[:i] + sequence[i + 1:]
+                    insertions -= 1
                     continue
-                else:
-                    insert = choice(bases)
-                    sequence = sequence[:i + 1] + insert + sequence[i + 1:]
-                    i += 2
-                    continue
+                insert = choice(bases)
+                sequence = sequence[:i + 1] + insert + sequence[i + 1:]
+                i += 1
+
+            # deletion
+            elif sequence[i] == replacement_base:
+                sequence = sequence[:i] + sequence[i + 1:]
+                insertions -= 1
+                continue
+            # replacement
             else:
                 sequence = sequence[:i] + replacement_base + sequence[i + 1:]
         i += 1
@@ -87,12 +91,13 @@ if __name__ == '__main__':
         exit(-1)
 
     haplotype_length = config[data]['haplotype_length']
-    number_of_strains = config['number_of_strains']
-    read_length = config['read_length']
+    number_of_strains = config[data]['number_of_strains']
+    read_length = config[data]['read_length']
     # double to remove half later  -> less pattern in produced reads
     # min_number_of_reads_per_strain = 2 * config['min_number_of_reads_per_strain']
 
     og_strain, mutated_strains = create_reference(haplotype_length, number_of_strains)
+
     print(len(mutated_strains))
     longest = max(mutated_strains, key=len)
     index = mutated_strains.index(longest)

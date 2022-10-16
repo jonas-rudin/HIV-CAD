@@ -5,8 +5,8 @@ from os.path import exists
 import numpy as np
 # import psutil
 import tensorflow as tf
-# from sklearn.cluster import KMeans
 from sklearn.cluster import KMeans
+# from sklearn.cluster import KMeans
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import MeanSquaredError, KLD
 
@@ -16,7 +16,7 @@ import performance
 from helpers.IO import load_tensor_file
 from helpers.colors_coding import ColorCoding
 from helpers.config import get_config
-from models.autoencoder import get_autoencoder_key_points_with_pooling
+from models.autoencoder import get_autoencoder_key_points_with_pooling, get_autoencoder_key_points
 from models.layers.cluster import ClusteringLayer
 
 # in bytes
@@ -45,15 +45,6 @@ if __name__ == '__main__':
     print(f'Working with {ColorCoding.OKGREEN}{data}{ColorCoding.ENDC} reads')
     number_of_files = one_hot.encode_sam()
 
-    # generator stuff
-    # _, _, files = next(os.walk(config[data]['one_hot_path']))
-    # number_of_batches = len(files)
-    # print('number_of_batches', number_of_batches)
-    # file_names = [*range(number_of_batches)]
-    # shuffle(file_names)
-    # print(file_names)
-    # autoencoder_generator = AutoencoderGenerator(file_names, number_of_batches)
-
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
@@ -71,14 +62,6 @@ if __name__ == '__main__':
             one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
             shape = one_hot_encoded_reads.shape
 
-    # SPARSE
-    # one_hot_encoded_reads = tf.sparse.from_dense(one_hot_encoded_reads)
-
-    # tf.cast(one_hot_encoded_reads.values, dtype=tf.float32)
-    # print(one_hot_encoded_reads_sparse)
-    # print(tf.sparse.to_dense(one_hot_encoded_reads_sparse))
-    # print(one_hot_encoded_reads)
-    # print(tf.convert_to_tensor(one_hot_encoded_reads))
     with tf.device('/cpu:0'):
         dataset = tf.data.Dataset.from_tensor_slices((one_hot_encoded_reads, one_hot_encoded_reads))
         dataset = dataset.shuffle(10).batch(config[data]['batch_size'])  # .prefetch(2)
@@ -87,23 +70,28 @@ if __name__ == '__main__':
     # create autoencoder
     print(f'{ColorCoding.OKGREEN}before{ColorCoding.ENDC}')
 
-    # values = psutil.virtual_memory()
-    # print(values)
-
     # model_input, encoder_output, decoder_output = get_autoencoder_key_points(one_hot_encoded_reads.shape[1:])
 
     # model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
     #     (9850, 4, 1))
     # model_input, encoder_output, decoder_output = get_autoencoder_key_points((9850, 4, 1))
-    print(f'{ColorCoding.OKGREEN}Model build{ColorCoding.ENDC}')
+    pooling = ' pooling' if config[data]['pooling'] else 'out pooling';
+    print(f'{ColorCoding.OKGREEN}Model build with{pooling}{ColorCoding.ENDC}')
     # with distribution_strategy.scope():
-    model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
-        shape[1:])
+    if config[data]['pooling']:
+        model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
+            shape[1:])
+    else:
+        model_input, encoder_output, decoder_output = get_autoencoder_key_points(
+            shape[1:])
     print(f'{ColorCoding.OKGREEN}building autoencoder{ColorCoding.ENDC}')
 
     autoencoder = Model(inputs=model_input, outputs=decoder_output, name='autoencoder')
     autoencoder.compile(optimizer='adam', loss=MeanSquaredError())
     autoencoder.optimizer.lr.assign(0.001)
+    # TODO delete following two lines
+    autoencoder.build(input_shape=shape)
+    autoencoder.summary()
 
     encoder = Model(inputs=model_input, outputs=encoder_output, name='encoder')
     encoder.compile(optimizer='adam', loss=MeanSquaredError())
@@ -126,22 +114,7 @@ if __name__ == '__main__':
                       loss_weights=[1 - lam, lam],
                       optimizer='adam')
     cae_model.optimizer.lr.assign(0.001)
-    # dataset = distribution_strategy.experimental_distribute_dataset(dataset)
 
-    # autoencoder = Autoencoder(one_hot_encoded_reads.shape[1:])
-    # adam = optimizer_v2.Adam(learning_rate=0.01)
-
-    # values = psutil.virtual_memory()
-    # print(values)
-
-    # one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
-
-    # autoencoder.build(input_shape=shape)
-    #
-    # autoencoder.summary()
-    # values = psutil.virtual_memory()
-    # print(values)
-    # exit(-1)
     print('reads tensor shape:', shape)
     print('number of reads:', shape[0])
     print('batch_size:', config[data]['batch_size'])
@@ -154,14 +127,8 @@ if __name__ == '__main__':
 
     else:
         print(f'{ColorCoding.OKGREEN}Training Autoencoder{ColorCoding.ENDC}')
-        # autoencoder.fit(x=autoencoder_generator,
-        #                 epochs=10,
-        #                 verbose=1,
-        #                 steps_per_epoch=number_of_batches)
-        #
-        # exit(-1)
         autoencoder.fit(x=dataset,
-                        epochs=10,
+                        epochs=100,
                         verbose=config['verbose'])
 
         # autoencoder.fit(x=one_hot_encoded_reads, y=one_hot_encoded_reads,
@@ -182,173 +149,107 @@ if __name__ == '__main__':
     prediction_for_kmeans_training = encoder.predict(dataset, verbose=1)  # TODO change to verbose
     # max_clusters = config['max_clusters']
     # for n_clusters in range(1, max_clusters):
-    for n_clusters in [config['n_clusters']]:
-        # one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
+    n_clusters = config['n_clusters']
+    # one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
 
-        kmeans_rep = 10  # TODO set to 10
-        best_mec_result = 0
-        print('n_clusters:', n_clusters)
-        print(f'{ColorCoding.OKGREEN}Initialize KMeans{ColorCoding.ENDC} for ' + str(n_clusters) + ' clusters (' + str(
-            kmeans_rep) + ' times)')
-        # TODO uncomment -->
-        for i in range(kmeans_rep):
-            print('kmeans_rep:', i)
-            kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=0)  # TODO change to verbose
-            predicted_clusters = kmeans.fit_predict(prediction_for_kmeans_training)
-            consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-                                                                          predicted_clusters, n_clusters)
-            new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
-            print("mec", new_mec_result)
-            if i == 0 or best_mec_result > new_mec_result:
-                centroids = kmeans.cluster_centers_
-                best_mec_result = new_mec_result
-                best_consensus_sequences = consensus_sequences
-        # TODO till here <--
-        print('Best MEC after cluster initialisation:', best_mec_result)
-        _, _, cpr = performance.correct_phasing_rate(best_consensus_sequences)
-        print('CRP after centroids:', cpr)
-        # Model autoencoder and clustering
+    kmeans_rep = 10  # TODO set to 10
+    best_mec_result = 0
+    print('n_clusters:', n_clusters)
+    print(f'{ColorCoding.OKGREEN}Initialize KMeans{ColorCoding.ENDC} for ' + str(n_clusters) + ' clusters (' + str(
+        kmeans_rep) + ' times)')
+    # TODO uncomment -->
+    for i in range(kmeans_rep):
+        print('kmeans_rep:', i)
+        kmeans = KMeans(n_clusters=n_clusters, n_init=30, verbose=0)  # TODO change to verbose
+        predicted_clusters = kmeans.fit_predict(prediction_for_kmeans_training)
+        consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+                                                                      predicted_clusters, n_clusters)
+        new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+        print("mec", new_mec_result)
+        if i == 0 or best_mec_result > new_mec_result:
+            centroids = kmeans.cluster_centers_
+            best_mec_result = new_mec_result
+            best_consensus_sequences = consensus_sequences
+    # TODO till here <--
+    # print('Best MEC after cluster initialisation:', best_mec_result)
+    # _, _, cpr = performance.correct_phasing_rate(best_consensus_sequences)
+    # print('CRP after centroids:', cpr)
 
-        # print model maybe in different
-        # print(cae_model.get_layer(name='clustering'))
-        # print(list(i.name for i in cae_model.layers))
-        # for i in cae_model.layers:
-        #     if i.name == 'model':
-        #         print('decoder')
-        #         for j in i.layers:
-        #             print(j.name, j.input, j.output)
-        #     else:
-        #         print(i.name, i.input, i.output)
-        #
-        # print(cae_model.output)
+    # TODO delete incl. file
+    with open(config[data]['centroids_name'], "wb") as fp:
+        pickle.dump(centroids, fp)
+    # with open(config[data]['centroids_name'], "rb") as fp:
+    #     centroids = pickle.load(fp)
 
+    cae_model.get_layer(name='clustering').set_weights([centroids])
+    # cae_model.build(input_shape=one_hot_encoded_reads.shape)
+    # cae_model.summary()
+
+    mec_results = []
+
+    old_mec_result = 0
+    for epoch in range(1):  # TODO set to 2000
+        print('epoch', epoch)
+        # TODO try if possible
+        clustering_output = clustering_model.predict(dataset, verbose=config['verbose'])
+        # _, clustering_output = cae_model.predict(dataset, verbose=config['verbose'])
         # TODO delete incl. file
-        with open(config[data]['centroids_name'], "wb") as fp:
-            pickle.dump(centroids, fp)
-        # with open(config[data]['centroids_name'], "rb") as fp:
-        #     centroids = pickle.load(fp)
+        with open("clustering_output", "wb") as fp:
+            pickle.dump(clustering_output, fp)
+        # with open("clustering_output", "rb") as fp:
+        #     clustering_output = pickle.load(fp)
+        predicted_clusters = np.argmax(clustering_output, axis=1)
+        # print('number of clusters')
+        # print('0', np.count_nonzero(predicted_clusters == 0))
+        # print('1', np.count_nonzero(predicted_clusters == 1))
+        # print('2', np.count_nonzero(predicted_clusters == 2))
+        # print('3', np.count_nonzero(predicted_clusters == 3))
+        # print('4', np.count_nonzero(predicted_clusters == 4))
 
-        cae_model.get_layer(name='clustering').set_weights([centroids])
-        # cae_model.build(input_shape=one_hot_encoded_reads.shape)
-        # cae_model.summary()
+        consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+                                                                      predicted_clusters, n_clusters)
+        decoded_sequences = one_hot.decode(consensus_sequences)
 
-        mec_results = []
+        new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+        print('new mec result', new_mec_result)
 
-        old_mec_result = 0
-        for epoch in range(20):  # TODO set to 2000
-            print('epoch', epoch)
-            # TODO try if possible
-            clustering_output = clustering_model.predict(dataset, verbose=config['verbose'])
-            # _, clustering_output = cae_model.predict(dataset, verbose=config['verbose'])
-            # TODO delete incl. file
-            with open("clustering_output", "wb") as fp:
-                pickle.dump(clustering_output, fp)
-            # with open("clustering_output", "rb") as fp:
-            #     clustering_output = pickle.load(fp)
-            predicted_clusters = np.argmax(clustering_output, axis=1)
-            # print('number of clusters')
-            # print('0', np.count_nonzero(predicted_clusters == 0))
-            # print('1', np.count_nonzero(predicted_clusters == 1))
-            # print('2', np.count_nonzero(predicted_clusters == 2))
-            # print('3', np.count_nonzero(predicted_clusters == 3))
-            # print('4', np.count_nonzero(predicted_clusters == 4))
+        # build clustering output per read depending on hamming distance at non-zero places
+        predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(shape[0],
+                                                                                             n_clusters,
+                                                                                             consensus_sequences,
+                                                                                             one_hot_encoded_reads)
+        predicted_clusters_tensor = tf.convert_to_tensor(predicted_clusters, dtype=tf.int8)
 
-            consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-                                                                          predicted_clusters, n_clusters)
-            # break
-            decoded_sequences = one_hot.decode(consensus_sequences)
-            # for decoded_sequence in decoded_sequences:
-            #     print(decoded_sequence)
-            # break
+        if epoch > 1 and old_mec_result == new_mec_result:
+            break
 
-            new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
-            print('new mec result', new_mec_result)
-            # build clustering output per read depending on hamming distance at non-zero places
+        old_mec_result = new_mec_result
 
-            predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(shape[0],
-                                                                                                 n_clusters,
-                                                                                                 consensus_sequences,
-                                                                                                 one_hot_encoded_reads)
-            predicted_clusters_tensor = tf.convert_to_tensor(predicted_clusters, dtype=tf.int8)
+        dataset = tf.data.Dataset.from_tensor_slices(
+            (one_hot_encoded_reads, (one_hot_encoded_reads, predicted_clusters_tensor)))
 
-            # predicted_clusters_training = np.zeros((shape[0], n_clusters), dtype=int)
-            # for read_index in range(shape[0]):
-            #     hd = []
-            #     for consensus_sequence in consensus_sequences:
-            #         hd.append(performance.hamming_distance(one_hot_encoded_reads[read_index], consensus_sequence))
-            #     predicted_clusters_training[read_index][np.argmin(hd)] = 1
-            # predicted_clusters_training_tensor = tf.convert_to_tensor(predicted_clusters_training, dtype=tf.int8)
+        dataset = dataset.shuffle(10).batch(config[data]['batch_size'])
+        cae_model.fit(dataset, epochs=1, verbose=config['verbose'])
 
-            if epoch > 1 and old_mec_result == new_mec_result:
-                break
+    # TODO what is happening here?
+    print('Final MEC after training:', best_mec_result)
+    _, _, cpr = performance.correct_phasing_rate(consensus_sequences)
+    print('CRP after training:', cpr)
 
-            old_mec_result = new_mec_result
+    # correction -> converge
+    old_mec_result = 0
+    new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
 
-            dataset = tf.data.Dataset.from_tensor_slices(
-                (one_hot_encoded_reads, (one_hot_encoded_reads, predicted_clusters_tensor)))
+    while old_mec_result != new_mec_result:
+        old_mec_result = new_mec_result
+        predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(shape[0], n_clusters,
+                                                                                             consensus_sequences,
+                                                                                             one_hot_encoded_reads)
 
-            dataset = dataset.shuffle(10).batch(config[data]['batch_size'])
-            cae_model.fit(dataset, epochs=1, verbose=config['verbose'])
-
-        # TODO what is happening here?
-        print('Final MEC after training:', best_mec_result)
-        _, _, cpr = performance.correct_phasing_rate(consensus_sequences)
-        print('CRP after training:', cpr)
-
-        # correction -> converge
-        old_mec_result = 0
+        consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+                                                                      predicted_clusters, n_clusters)
         new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
 
-        while old_mec_result != new_mec_result:
-            old_mec_result = new_mec_result
-            predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(shape[0], n_clusters,
-                                                                                                 consensus_sequences,
-                                                                                                 one_hot_encoded_reads)
-
-            # predicted_clusters = np.zeros((shape[0], n_clusters), dtype=int)
-            # for read_index in range(shape[0]):
-            #     hd = []
-            #     for consensus_sequence in consensus_sequences:
-            #         hd.append(performance.hamming_distance(one_hot_encoded_reads[read_index], consensus_sequence))
-            #     predicted_clusters[read_index][np.argmin(hd)] = 1
-
-            consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-                                                                          predicted_clusters, n_clusters)
-            new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
-        # pre_mec = 0
-        # mec = MEC(SNVmatrix, haplotypes)
-        # count = 0
-        # while mec != pre_mec:
-        #     index = []
-        #     for i in range(SNVmatrix.shape[0]):
-        #         dis = np.zeros((haplotypes.shape[0]))
-        #         for j in range(haplotypes.shape[0]):
-        #             dis[j] = hamming_distance(SNVmatrix[i, :], haplotypes[j, :])
-        #         index.append(np.argmin(dis))
-        #
-        #     new_haplo = np.zeros((haplotypes.shape))
-        #     for i in range(haplotypes.shape[0]):
-        #         new_haplo[i, :] = np.argmax(ACGT_count(SNVmatrix[np.array(index) == i, :]), axis=1) + 1
-        #     haplotypes = new_haplo.copy()
-        #     pre_mec = mec
-        #     mec = MEC(SNVmatrix, haplotypes)
-        #     count += 1
-
-        # TODO
-        #  - maximise MEC
-        # output_cluster = model.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
-        # output_encoder = autoencoder.predict(x=tf.expand_dims(one_hot_encoded_reads[0], axis=0))
-        # print("output_cluster", output_cluster)
-        # print("evaluate")
-        # autoencoder.evaluate(x=one_hot_encoded_reads, y=one_hot_encoded_reads, verbose=verbose)
-
-        # if config['save']:
-        #     if config['data'] == 'experimental':
-        #         autoencoder.save('./results/models/454_weights')
-        #     else:
-        #         autoencoder.save(
-        #             './results/models/created_weights_' + str(config['number_of_strains']) + '_' + str(
-        #                 config['read_length']) + '_' + str(config['min_number_of_reads_per_strain']))
     min_sum, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences)
     print('final MEC:', new_mec_result)
     print('final CPR:', cpr)
