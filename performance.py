@@ -27,7 +27,11 @@ def minimum_error_correction(reads, consensus_sequences):
 
 
 def correct_phasing_rate(consensus_sequences):
-    reference_sequences = load_tensor_file(config[data]['ref_path'])
+    if data == 'created':
+        reference_sequences = load_tensor_file(
+            config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']))
+    else:
+        reference_sequences = load_tensor_file(config[data]['aligned_ref_path'])
 
     print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences))
     print('\nreference_sequences:\n', one_hot.decode(reference_sequences))
@@ -50,9 +54,6 @@ def correct_phasing_rate(consensus_sequences):
                     hd_per_ref.append(
                         hamming_distance(consensus_sequence, reference_sequence[start_index:end_index]))
                     # reference_sequence = np.roll(reference_sequence, 1, axis=0)
-                print(hd_per_ref)
-                print(len(hd_per_ref))
-                print(hd_per_ref.index(min(hd_per_ref)))
                 distances[cs_index][ref_index] = min(hd_per_ref)
 
     else:
@@ -76,7 +77,6 @@ def correct_phasing_rate(consensus_sequences):
     min_sum = 0
     indexes = list(range(len(reference_sequences)))
     permutations = list(itertools.permutations(indexes))
-    print('permutations:', permutations)
     for permutation in permutations:
         tmp_sum = 0
         for i in range(len(consensus_sequences)):
@@ -86,7 +86,7 @@ def correct_phasing_rate(consensus_sequences):
             min_sum = tmp_sum
 
     # print('min_sum', min_sum)
-
-    cpr = 1 - (min_sum / (len(consensus_sequences) * config[data]['haplotype_length']))
+    print(reference_sequences.shape[1])
+    cpr = 1 - (min_sum / (len(consensus_sequences) * reference_sequences.shape[1]))
     # print(cpr)
     return min_sum, min_indexes, cpr

@@ -6,7 +6,7 @@ haplotype_file_path: "./data/reference//REF.fasta"
 name: "HIV_CAD"
 save: True
 load: True
-data: per_gene_454
+data: created
 # illumina, 454, created or testing
 alignment: ngs_alignment # de_novo_alignment or ngs_alignment
 #data: created
@@ -45,20 +45,21 @@ ref_path: ./data/reference/REF_aligned
 
 454:
   reads_path: ./data/454
-  mapped_reads_path: ./data/454_mapped.sam
+  mapped_reads_path: ./data/454_mapped
   #  one_hot_path: ./data/454_encoded_reads
-  one_hot_path: ./data/454_encoded_reads_p17
+  one_hot_path: ./data/454_encoded_snps
   #  one_hot_path: ./data/454/encoded/
   cluster_path: ./results/clusters/
   aligned_path: ./results/aligned/
   autoencoder_weights_path: ./results/models/autoencoder_weights
   output_path: ./results/454_output.fasta
   #  weights_path: ./results/models/454_weights
-  weights_path: ./results/models/454_weights
+  weights_path: ./results/models/454_weights_snps
   ref_path: ./data/reference/REF
+  aligned_ref_path: ./data/reference/aligned_REF
   unaligned_ref_path: ./data/reference/unaligned_454_REF
   number_of_batches: 100000
-  batch_size: 100
+  batch_size: 10000
   #  haplotype_length: 5000
   #  haplotype_length: 4860
   haplotype_length: 9721
@@ -66,20 +67,32 @@ ref_path: ./data/reference/REF_aligned
   #  centroids_name: centroids
   haplotype_start: 789
   haplotype_end: 1186
-  centroids_name: centroids
+  centroids_name: centroids_snp
   pooling: True
   SNP_pos: ./data/454_SNP_pos
+  n_clusters: 5
+  snp_positions: ./data/reference/snp_positions.txt
 
 per_gene_454:
   reads_path: ./data/454
   mapped_reads_path: ./data/454_mapped.sam
 
-  haplotype_start: 1185
-  haplotype_end: 1879
-  one_hot_path: ./data/454_encoded_reads_p24
-  weights_path: ./results/models/454_weights_p24
-  centroids_name: centroids_p24
+  #  p2p6
+  haplotype_start: 1878
+  haplotype_end: 2292
+  one_hot_path: ./data/454_encoded_reads_p2p6
+  weights_path: ./results/models/454_weights_p2p6
+  centroids_name: centroids_p2p6
+  n_clusters: 5
 
+  # p24
+  #  haplotype_start: 1185
+  #  haplotype_end: 1879
+  #  one_hot_path: ./data/454_encoded_reads_p24
+  #  weights_path: ./results/models/454_weights_p24
+  #  centroids_name: centroids_p24
+
+  # p17
   #  haplotype_start: 789
   #  haplotype_end: 1186
   #  one_hot_path: ./data/454_encoded_reads_p17
@@ -96,43 +109,49 @@ per_gene_454:
   batch_size: 200
   haplotype_length: 9721
   pooling: True
-  SNP_pos: ./data/454_SNP_pos
 
 illumina:
   reads_path: ./data/Illumina
-  mapped_reads_path: ./data/illumina_mapped.sam
-  one_hot_path: ./data/illumina_encoded_reads
-  weights_path: ./results/models/illumina_weights
+  mapped_reads_path: ./data/illumina_mapped
+  #  one_hot_path: ./data/illumina_encoded_reads
+  one_hot_path: ./data/illumina_encoded_snps
+  #  weights_path: ./results/models/illumina_weights
+  weights_path: ./results/models/illumina_weights_snps
   output_path: ./results/illumina_output.fasta
   ref_path: ./data/reference/REF
+  aligned_ref_path: ./data/reference/aligned_REF
   unaligned_ref_path: ./data/reference/unaligned_illumina_REF
   haplotype_length: 9721
   number_of_batches: 9721
-  centroids_name: illumina_centroids
-  batch_size: 100
-  SNP_pos: ./data/illumina_SNP_pos
+  #  centroids_name: illumina_centroids
+  centroids_name: illumina_centroids_snps
+  batch_size: 500
+  n_clusters: 5
+  pooling: False
+  snp_positions: ./data/reference/snp_positions.txt
 
 created:
-  reads_path: ./data/created
-  mapped_reads_path: ./data/created_mapped.sam
-  one_hot_path: ./data/created_encoded_reads
+  reads_path: ./data/created/reads
+  mapped_reads_path: ./data/created/mapped
+  one_hot_path: ./data/created/encoded_reads
   weights_path: ./results/models/created_weights_dataset
   output_path: ./results/created_output_dataset.fasta
   #  ref_path: ./data/reference/created_REF
-  ref_path: ./data/reference/created_REF
-  unaligned_ref_path: ./data/reference/unaligned_created_REF
-  og_path: ./data/reference/created_og_REF.fasta
-  longest_path: ./data/reference/created_longest_REF.fasta
-  haplotype_length: 1000
+  ref_path: ./data/created/reference/REF
+  aligned_ref_path: ./data/created/reference/aligned_REF
+  og_path: ./data/created/reference/og_REF.fasta
+  longest_path: ./data/created/reference/longest_REF
+  snp_positions: ./data/created/reference/snp_positions
+  haplotype_length: 4000
   number_of_batches: 1000
   batch_size: 100
   centroids_name: centroids_created
-  coverage: 5
+  coverage: 25
   error: todo
-  pooling: True
+  pooling: False
   read_length: 500
   number_of_strains: 5
-
+  n_clusters: 5
 
 
 

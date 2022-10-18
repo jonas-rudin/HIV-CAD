@@ -11,7 +11,7 @@ data = config['data']
 
 def get_autoencoder_key_points(input_shape):
     # input layer
-    base_filter = 16
+    base_filter = 32
     model_input = Input(
         shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
@@ -47,10 +47,10 @@ def get_autoencoder_key_points(input_shape):
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_dropout_3)
     # 5. layer
     # TODO replace all others
-    output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
+    latent_space = Dense(units=input_shape[0] / 4, name='encoder_Dense_5')(
         encoder_flatten_4)
 
-    decoder_dense_1 = Dense(units=base_filter * 4 * input_shape[0], name='decoder_Dense_1')(output_encoder)
+    decoder_dense_1 = Dense(units=base_filter * 4 * input_shape[0], name='decoder_Dense_1')(latent_space)
     decoder_prelu_2 = PReLU(name='decoder_PReLU_2')(decoder_dense_1)
     decoder_reshape_2 = Reshape((input_shape[0], 1, base_filter * 4), name='decoder_Reshape_2')(decoder_prelu_2)
     decoder_conv2dtranspose_3 = Conv2DTranspose(filters=base_filter * 2,
@@ -75,12 +75,12 @@ def get_autoencoder_key_points(input_shape):
     decoder_prelu_5 = PReLU(name='decoder_PReLU_5')(decoder_conv2dtranspose_5)
     decoder_output = Dropout(0, name='decoder_Dropout_5')(decoder_prelu_5)
 
-    return model_input, output_encoder, decoder_output
+    return model_input, latent_space, decoder_output
 
 
 def get_autoencoder_key_points_with_pooling(input_shape):
     # input layer
-    base_filter = 16
+    base_filter = 32
     model_input = Input(
         shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
@@ -118,12 +118,12 @@ def get_autoencoder_key_points_with_pooling(input_shape):
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_pooling_3)
     # 5. layer
     # TODO replace all others
-    output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
+    latent_space = Dense(units=input_shape[0] / 4, name='encoder_Dense_5')(
         encoder_flatten_4)
     # output_encoder = Dense(units=9852 / 4, name='encoder_Dense_5')(
     #     encoder_flatten_4)
 
-    decoder_dense_1 = Dense(units=encoder_flatten_4.shape[1], name='decoder_Dense_1')(output_encoder)
+    decoder_dense_1 = Dense(units=encoder_flatten_4.shape[1], name='decoder_Dense_1')(latent_space)
     decoder_prelu_2 = PReLU(name='decoder_PReLU_2')(decoder_dense_1)
     decoder_reshape_2 = Reshape((encoder_pooling_3.shape[1], encoder_pooling_3.shape[2], encoder_pooling_3.shape[3]),
                                 name='decoder_Reshape_2')(decoder_prelu_2)
@@ -151,7 +151,7 @@ def get_autoencoder_key_points_with_pooling(input_shape):
     decoder_prelu_5 = PReLU(name='decoder_PReLU_5')(decoder_conv2dtranspose_5)
     decoder_output = Dropout(0, name='decoder_Dropout_5')(decoder_prelu_5)
 
-    return model_input, output_encoder, decoder_output
+    return model_input, latent_space, decoder_output
 
 
 def get_autoencoder_key_points_with_pooling_with_relu(input_shape):
@@ -195,7 +195,7 @@ def get_autoencoder_key_points_with_pooling_with_relu(input_shape):
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_dropout_3)
     # 5. layer
     # TODO replace all others
-    output_encoder = Dense(units=config[data]['haplotype_length'] / 4, name='encoder_Dense_5')(
+    output_encoder = Dense(units=input_shape[0] / 4, name='encoder_Dense_5')(
         encoder_flatten_4)
     # output_encoder = Dense(units=9852 / 4, name='encoder_Dense_5')(
     #     encoder_flatten_4)

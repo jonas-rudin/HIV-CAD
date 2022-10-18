@@ -13,12 +13,19 @@ silence = ''
 
 
 if __name__ == '__main__':
-    read_file = config[data]['reads_path']
-    reference_file = config['hxb2_path']
-    mapped_reads_file = config[data]['mapped_reads_path']
 
     if data == 'created':
-        reference_file = config[data]['longest_path']
+        read_file = config[data]['reads_path'] + '_' + str(config[data]['n_clusters'])
+        reference_file = config[data]['longest_path'] + '_' + str(config[data]['n_clusters']) + '.fasta'
+        mapped_reads_file = config[data]['mapped_reads_path'] + '_' + str(config[data]['n_clusters'])
+
+    else:
+        read_file = config[data]['reads_path']
+        reference_file = config['hxb2_path']
+        mapped_reads_file = config[data]['mapped_reads_path']
+    print(read_file)
+    print(reference_file)
+    print(mapped_reads_file)
     # index reference file
     print(reference_file)
     bwa_index_cmd = 'bwa index -a bwtsw ' + reference_file + silence
@@ -29,12 +36,12 @@ if __name__ == '__main__':
     print('aligned')
 
     if data == 'illumina':  # or data == 'created':
-        remove_low_quality_score_cmd = 'samtools view -Sq 59 -e \'length(seq)>150\' ' + read_file + '.sam > ' + mapped_reads_file
+        remove_low_quality_score_cmd = 'samtools view -Sq 59 -e \'length(seq)>150\' ' + read_file + '.sam > ' + mapped_reads_file + '.sam'
         os.system(remove_low_quality_score_cmd)
         print('only aligned with quality score over 60 and bp length greater than 150')
     else:
         # remove unmapped reads
-        remove_unaligned_cmd = 'samtools view -Sq 59 -e \'length(seq)>300\' ' + read_file + '.sam > ' + mapped_reads_file
+        remove_unaligned_cmd = 'samtools view -Sq 59 -e \'length(seq)>300\' ' + read_file + '.sam > ' + mapped_reads_file + '.sam'
         os.system(remove_unaligned_cmd)
         print('only aligned with quality score over 60 and bp length greater than 250')
 

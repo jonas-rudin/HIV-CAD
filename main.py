@@ -5,8 +5,8 @@ from os.path import exists
 import numpy as np
 # import psutil
 import tensorflow as tf
-from sklearn.cluster import KMeans
 # from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import MeanSquaredError, KLD
 
@@ -48,16 +48,22 @@ if __name__ == '__main__':
     n_clusters = config['n_clusters']
     verbose = config['verbose']
 
-    if data == 'illumina':
-        one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_0')
-        index = 1
-        while exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'):
-            next_one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_' + str(index))
-            index += 1
-            print(exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'))
-            one_hot_encoded_reads = tf.concat([one_hot_encoded_reads, next_one_hot_encoded_reads], axis=0)
+    # if data == 'illumina':
+    #     one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_0')
+    #     index = 1
+    #     while exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'):
+    #         next_one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'] + '_' + str(index))
+    #         index += 1
+    #         print(exists(config[data]['one_hot_path'] + '_' + str(index) + '.npy'))
+    #         one_hot_encoded_reads = tf.concat([one_hot_encoded_reads, next_one_hot_encoded_reads], axis=0)
+    # else:
+    #     # print('not loading data')
+    if data == 'created':
+        with tf.device('/cpu:0'):
+            one_hot_encoded_reads = load_tensor_file(
+                config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']))
+            shape = one_hot_encoded_reads.shape
     else:
-        # print('not loading data')
         with tf.device('/cpu:0'):
             one_hot_encoded_reads = load_tensor_file(config[data]['one_hot_path'])
             shape = one_hot_encoded_reads.shape
@@ -79,10 +85,10 @@ if __name__ == '__main__':
     print(f'{ColorCoding.OKGREEN}Model build with{pooling}{ColorCoding.ENDC}')
     # with distribution_strategy.scope():
     if config[data]['pooling']:
-        model_input, encoder_output, decoder_output = get_autoencoder_key_points_with_pooling(
+        model_input, latent_space, decoder_output = get_autoencoder_key_points_with_pooling(
             shape[1:])
     else:
-        model_input, encoder_output, decoder_output = get_autoencoder_key_points(
+        model_input, latent_space, decoder_output = get_autoencoder_key_points(
             shape[1:])
     print(f'{ColorCoding.OKGREEN}building autoencoder{ColorCoding.ENDC}')
 
@@ -93,14 +99,14 @@ if __name__ == '__main__':
     autoencoder.build(input_shape=shape)
     autoencoder.summary()
 
-    encoder = Model(inputs=model_input, outputs=encoder_output, name='encoder')
+    encoder = Model(inputs=model_input, outputs=latent_space, name='encoder')
     encoder.compile(optimizer='adam', loss=MeanSquaredError())
     encoder.optimizer.lr.assign(0.001)
     encoder.summary()
 
     print(f'{ColorCoding.OKGREEN}building CAE{ColorCoding.ENDC}')
 
-    clustering_layer = ClusteringLayer(n_clusters=n_clusters, name='clustering')(encoder_output)
+    clustering_layer = ClusteringLayer(n_clusters=n_clusters, name='clustering')(latent_space)
 
     clustering_model = Model(inputs=model_input,
                              outputs=clustering_layer)
@@ -188,7 +194,7 @@ if __name__ == '__main__':
     mec_results = []
 
     old_mec_result = 0
-    for epoch in range(1):  # TODO set to 2000
+    for epoch in range(20):  # TODO set to 2000
         print('epoch', epoch)
         # TODO try if possible
         clustering_output = clustering_model.predict(dataset, verbose=config['verbose'])
