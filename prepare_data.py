@@ -35,7 +35,7 @@ if __name__ == '__main__':
     os.system(bwa_mem_cmd)
     print('aligned')
 
-    if data == 'illumina':  # or data == 'created':
+    if data == 'illumina' or data == 'created':
         remove_low_quality_score_cmd = 'samtools view -Sq 59 -e \'length(seq)>150\' ' + read_file + '.sam > ' + mapped_reads_file + '.sam'
         os.system(remove_low_quality_score_cmd)
         print('only aligned with quality score over 60 and bp length greater than 150')

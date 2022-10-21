@@ -20,27 +20,27 @@ def add_error(sequence, error):
     while i < (len(sequence)):
         if uniform(0, 1) < error:
             # if random base = base -> remove base from read
-            # replacement_base = choice(bases + ['I'])
-            # # insertion
-            # if replacement_base == 'I':
-            #     insertions += 1
-            #     # if more insertions than deletions do deletion
-            #     if insertions > 0:
-            #         sequence = sequence[:i] + sequence[i + 1:]
-            #         insertions -= 1
-            #         continue
-            #     insert = choice(bases)
-            #     sequence = sequence[:i + 1] + insert + sequence[i + 1:]
-            #     i += 1
-            #
-            # # deletion
-            # elif sequence[i] == replacement_base:
-            #     sequence = sequence[:i] + sequence[i + 1:]
-            #     insertions -= 1
-            #     continue
-            # # replacement
-            # else:
-            #     sequence = sequence[:i] + replacement_base + sequence[i + 1:]
+            replacement_base = choice(bases + ['I'])
+            # insertion
+            if replacement_base == 'I':
+                insertions += 1
+                # if more insertions than deletions do deletion
+                if insertions > 0:
+                    sequence = sequence[:i] + sequence[i + 1:]
+                    insertions -= 1
+                    continue
+                insert = choice(bases)
+                sequence = sequence[:i + 1] + insert + sequence[i + 1:]
+                i += 1
+
+            # deletion
+            elif sequence[i] == replacement_base:
+                sequence = sequence[:i] + sequence[i + 1:]
+                insertions -= 1
+                continue
+            # replacement
+            else:
+                sequence = sequence[:i] + replacement_base + sequence[i + 1:]
             replacement_base = choice(bases)
             sequence = sequence[:i] + replacement_base + sequence[i + 1:]
         i += 1
@@ -77,14 +77,14 @@ def add_mutation(sequence, mutation_rate, longest=False):
             #     i += 1
             replacement_base = choice(bases_to_choose_from)
 
-            # # deletion
-            # if sequence[i] == replacement_base:
-            #     sequence = sequence[:i] + '-' + sequence[i + 1:]
-            #     # insertions -= 1
-            #     continue
-            # # replacement
-            # else:
-            #     sequence = sequence[:i] + replacement_base + sequence[i + 1:]
+            # deletion
+            if sequence[i] == replacement_base:
+                sequence = sequence[:i] + '-' + sequence[i + 1:]
+                # insertions -= 1
+                continue
+            # replacement
+            else:
+                sequence = sequence[:i] + replacement_base + sequence[i + 1:]
             sequence = sequence[:i] + replacement_base + sequence[i + 1:]
         i += 1
     return sequence, snp_positions
@@ -131,7 +131,8 @@ def create_reference(length, number_of_strains):
             og_strain += choice(bases)
         save_text(config[data]['og_path'], '>OG\n' + og_strain)
 
-    snp_frequency = 0.0778 / 5
+    # snp_frequency = 0.0778 / 5
+    snp_frequency = 0.1 / 5
     mutated_strains = []
     if exists(config[data]['ref_path'] + '_' + str(number_of_strains) + '.fasta'):
         print('using existing file:', config[data]['ref_path'] + '_' + str(number_of_strains) + '.fasta')
@@ -169,6 +170,8 @@ def create_reference(length, number_of_strains):
                   aligned_fasta_encoded[:-1])
         save_text(config[data]['longest_path'] + '_' + str(number_of_strains) + '.fasta',
                   '>c0\n' + longest)
+        # remove duplicates
+        combined_snp_positions = list(dict.fromkeys(combined_snp_positions))
         combined_snp_positions.sort()
         with open(config[data]['snp_positions'] + '_' + str(number_of_strains) + '.txt', 'w') as fp:
             for position in combined_snp_positions:

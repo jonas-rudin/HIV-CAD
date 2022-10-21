@@ -7,7 +7,7 @@ name: "HIV_CAD"
 save: True
 load: True
 data: created
-# illumina, 454 or created
+# illumina, created or testing
 alignment: ngs_alignment # de_novo_alignment or ngs_alignment
 #data: created
 number_of_spots: 3000
@@ -73,6 +73,43 @@ ref_path: ./data/reference/REF_aligned
   n_clusters: 5
   snp_positions: ./data/reference/snp_positions.txt
 
+per_gene_454:
+  reads_path: ./data/454
+  mapped_reads_path: ./data/454_mapped.sam
+
+  #  p2p6
+  haplotype_start: 1878
+  haplotype_end: 2292
+  one_hot_path: ./data/454_encoded_reads_p2p6
+  weights_path: ./results/models/454_weights_p2p6
+  centroids_name: centroids_p2p6
+  n_clusters: 5
+
+  # p24
+  #  haplotype_start: 1185
+  #  haplotype_end: 1879
+  #  one_hot_path: ./data/454_encoded_reads_p24
+  #  weights_path: ./results/models/454_weights_p24
+  #  centroids_name: centroids_p24
+
+  # p17
+  #  haplotype_start: 789
+  #  haplotype_end: 1186
+  #  one_hot_path: ./data/454_encoded_reads_p17
+  #  weights_path: ./results/models/454_weights_p17
+  #  centroids_name: centroids_p17
+
+  cluster_path: ./results/clusters/
+  aligned_path: ./results/aligned/
+  autoencoder_weights_path: ./results/models/autoencoder_weights
+  output_path: ./results/454_output.fasta
+  ref_path: ./data/reference/REF
+  unaligned_ref_path: ./data/reference/unaligned_454_REF
+  number_of_batches: 100000
+  batch_size: 200
+  haplotype_length: 9721
+  pooling: True
+
 illumina:
   reads_path: ./data/Illumina
   mapped_reads_path: ./data/illumina_mapped
@@ -105,14 +142,14 @@ created:
   og_path: ./data/created/reference/og_REF.fasta
   longest_path: ./data/created/reference/longest_REF
   snp_positions: ./data/created/reference/snp_positions
-  haplotype_length: 500
-  number_of_batches: 250
+  haplotype_length: 2000
+  number_of_batches: 1000
   batch_size: 100
   centroids_name: centroids_created
-  coverage: 100
+  coverage: 25
   error: todo
   pooling: False
-  read_length: 200
+  read_length: 250
   number_of_strains: 5
   n_clusters: 3
 
