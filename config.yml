@@ -8,11 +8,9 @@ save: True
 load: True
 data: created
 # illumina, 454 or created
-alignment: ngs_alignment # de_novo_alignment or ngs_alignment
 #data: created
 number_of_spots: 3000
 max_read_length: 1006 #9721 # length of HBX2, 454
-#haplotype_length: 9721 # length of HBX2
 #haplotype_length: 9850 # length of HBX2 # adapted for positions in the back
 haplotype_length: 1000 # length of HBX2
 #max_read_length: 252
@@ -52,7 +50,7 @@ ref_path: ./data/reference/REF_aligned
   cluster_path: ./results/clusters/
   aligned_path: ./results/aligned/
   autoencoder_weights_path: ./results/models/autoencoder_weights
-  output_path: ./results/454_output.fasta
+  output_path: ./results/454_output
   #  weights_path: ./results/models/454_weights
   weights_path: ./results/models/454_weights_snps
   ref_path: ./data/reference/REF
@@ -80,7 +78,7 @@ illumina:
   one_hot_path: ./data/illumina_encoded_snps
   #  weights_path: ./results/models/illumina_weights
   weights_path: ./results/models/illumina_weights_snps
-  output_path: ./results/illumina_output.fasta
+  output_path: ./results/illumina_output
   ref_path: ./data/reference/REF
   aligned_ref_path: ./data/reference/aligned_REF
   unaligned_ref_path: ./data/reference/unaligned_illumina_REF
@@ -90,7 +88,7 @@ illumina:
   centroids_name: illumina_centroids_snps
   batch_size: 500
   n_clusters: 5
-  pooling: True
+  pooling: False
   snp_positions: ./data/reference/snp_positions.txt
 
 created:
@@ -102,19 +100,134 @@ created:
   #  ref_path: ./data/reference/created_REF
   ref_path: ./data/created/reference/REF
   aligned_ref_path: ./data/created/reference/aligned_REF
-  og_path: ./data/created/reference/og_REF.fasta
+  og_path: ./data/created/reference/0g_REF.fasta
   longest_path: ./data/created/reference/longest_REF
   snp_positions: ./data/created/reference/snp_positions
-  haplotype_length: 500
+  haplotype_length: 350
+  #  haplotype_length: 500
   number_of_batches: 250
   batch_size: 100
   centroids_name: centroids_created
-  coverage: 100
+  #  coverage: 100
+  coverage: 50
   error: todo
   pooling: False
-  read_length: 200
+  read_length: 250
   number_of_strains: 5
   n_clusters: 3
+
+
+per_gene:
+  reads_path: ./data/Illumina
+  mapped_reads_path: ./data/illumina_mapped
+
+  ref_path: ./data/reference/REF
+  aligned_ref_path: ./data/reference/aligned_REF
+  unaligned_ref_path: ./data/reference/unaligned_illumina_REF
+  haplotype_length: 9721
+  number_of_batches: 9721
+  #  centroids_name: illumina_centroids
+  centroids_name: illumina_centroids_snps
+  batch_size: 500
+  n_clusters: 5
+  pooling: False
+  snp_positions: ./data/reference/snp_positions.txt
+
+  #  p17
+  one_hot_path: ./data/genes/illumina_encoded_snps_p17
+  weights_path: ./results/models/illumina_weights_P17
+  output_path: ./results/illumina_output_P17
+  start: 789
+  end: 1186
+
+#  p24
+#  one_hot_path: ./data/genes/illumina_encoded_snps_p24
+#  weights_path: ./results/models/illumina_weights_p24
+#  output_path: ./results/illumina_output_p24
+#  start: 1185
+#  end: 1879
+
+#  p2p6
+#  one_hot_path: ./data/genes/illumina_encoded_snps_p2p6
+#  weights_path: ./results/models/illumina_weights_p2p6
+#  output_path: ./results/illumina_output_p2p6
+#  start: 1878
+#  end: 2292
+
+#  PR
+#  one_hot_path: ./data/genes/illumina_encoded_snps_PR
+#  weights_path: ./results/models/illumina_weights_PR
+#  output_path: ./results/illumina_output_PR
+#  start: 2252
+#  end: 2550
+
+#  RT
+#  one_hot_path: ./data/genes/illumina_encoded_snps_RT
+#  weights_path: ./results/models/illumina_weights_RT
+#  output_path: ./results/illumina_output_RT
+#  start: 2549
+#  end: 3870
+
+#  RNase
+#  one_hot_path: ./data/genes/illumina_encoded_snps_RNase
+#  weights_path: ./results/models/illumina_weights_RNase
+#  output_path: ./results/illumina_output_RNase
+#  start: 3869
+#  end: 4230
+
+#  int
+#  one_hot_path: ./data/genes/illumina_encoded_snps_int
+#  weights_path: ./results/models/illumina_weights_int
+#  output_path: ./results/illumina_output_int
+#  start: 4229
+#  end: 5096
+
+#  vif
+#  one_hot_path: ./data/genes/illumina_encoded_snps_vif
+#  weights_path: ./results/models/illumina_weights_vif
+#  output_path: ./results/illumina_output_vif
+#  start: 5040
+#  end: 5620
+
+#  vpr
+#  one_hot_path: ./data/genes/illumina_encoded_snps_vpr
+#  weights_path: ./results/models/illumina_weights_vpr
+#  output_path: ./results/illumina_output_vpr
+#  start: 5558
+#  end: 5850
+
+#  vpu
+#  one_hot_path: ./data/genes/illumina_encoded_snps_vpu
+#  weights_path: ./results/models/illumina_weights_vpu
+#  output_path: ./results/illumina_output_vpu
+#  start: 6061
+#  end: 6310
+
+#  gp120
+#  one_hot_path: ./data/genes/illumina_encoded_snps_gp120
+#  weights_path: ./results/models/illumina_weights_gp120
+#  output_path: ./results/illumina_output_vif
+#  start: 6224
+#  end: 7758
+
+#  gp41
+#  one_hot_path: ./data/genes/illumina_encoded_snps_gp41
+#  weights_path: ./results/models/illumina_weights_gp41
+#  output_path: ./results/illumina_output_gp41
+#  start: 7757
+#  end: 8795
+
+#  nef
+#  one_hot_path: ./data/genes/illumina_encoded_snps_nef
+#  weights_path: ./results/models/illumina_weights_nef
+#  output_path: ./results/illumina_output_nef
+#  start: 8796
+#  end: 9417
+
+
+
+
+
 
 
 

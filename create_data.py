@@ -48,6 +48,7 @@ def add_error(sequence, error):
 
 
 def add_mutation(sequence, mutation_rate, longest=False):
+    print(sequence)
     # TODO  -> safe correctly for data preparation
     i = 0
     insertions = 0
@@ -55,6 +56,17 @@ def add_mutation(sequence, mutation_rate, longest=False):
     while i < (len(sequence)):
         if uniform(0, 1) < mutation_rate:
             snp_positions.append(i)
+
+            # TODO reverte from
+            # bases_to_choose_from = []
+            # for base in bases:
+            #     if base != sequence[i]:
+            #         bases_to_choose_from.append(base)
+            #
+            # replacement_base = choice(bases_to_choose_from)
+            # sequence = sequence[:i] + replacement_base + sequence[i + 1:]
+
+            # TODO till here
             if longest:
                 bases_to_choose_from = []
                 for base in bases:
@@ -62,19 +74,7 @@ def add_mutation(sequence, mutation_rate, longest=False):
                         bases_to_choose_from.append(base)
             else:
                 bases_to_choose_from = bases
-            # if random base = base -> remove base from read
-            # replacement_base = choice(bases + ['I'])
-            # insertion
-            # if replacement_base == 'I':
-            #     insertions += 1
-            #     # if more insertions than deletions do deletion
-            #     if insertions > 0:
-            #         sequence = sequence[:i] + sequence[i + 1:]
-            #         insertions -= 1
-            #         continue
-            #     insert = choice(bases)
-            #     sequence = sequence[:i + 1] + insert + sequence[i + 1:]
-            #     i += 1
+
             replacement_base = choice(bases_to_choose_from)
 
             # deletion
@@ -85,8 +85,9 @@ def add_mutation(sequence, mutation_rate, longest=False):
             # replacement
             else:
                 sequence = sequence[:i] + replacement_base + sequence[i + 1:]
-            sequence = sequence[:i] + replacement_base + sequence[i + 1:]
+            # sequence = sequence[:i] + replacement_base + sequence[i + 1:]
         i += 1
+    print(sequence)
     return sequence, snp_positions
 
 

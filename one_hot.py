@@ -97,7 +97,7 @@ def encode_read(position, cigar, read, length):
         # delete insertions and add '-' for deletion
         for index in range(0, len(cigar_list), 2):
             if cigar_list[index + 1] == 'S':
-                if int(cigar_list[index]) > 4:
+                if int(cigar_list[index]) > 5:
                     return
             if cigar_list[index + 1] == 'D':
                 adjusted_read += '-' * int(cigar_list[index])
@@ -119,49 +119,19 @@ def encode_read(position, cigar, read, length):
     positioned_read = [-1] * position
     positioned_read.extend(switched_read)
     positioned_read.extend(-1 for _ in range(length - len(switched_read) - position))
-    # switched_read_tensor = tf.cast(positioned_read, tf.int32)
-
-    # if positioned_read[snps_index[10]] != -1:
-    #     print(positioned_read[snps_index[10]])
-    # print(positioned_read[snps_index[1]])
 
     # only take snp positions
     read_snps = [positioned_read[i] for i in snps_index]
 
-    # if positioned_read[snps_index[10]] != -1:
-    #     print('::::::::::::::::: snps_index[10]')
-    #     print('position', positioned_read[snps_index[10] - 2])
-    #     print('position', positioned_read[snps_index[10] - 1])
-    #     print('position', positioned_read[snps_index[10]])
-    #     print('position', positioned_read[snps_index[10] + 1])
-    #     print('position', positioned_read[snps_index[10] + 2])
-    #     # print('cigar', cigar)
-    #     # print('read', read)
-    #     # print('read', len(read))
-    #     print('adjusted_read', adjusted_read[snps_index[10]])
-    #     print('adjusted_read', len(adjusted_read))
-    # else:
-    #     print('----- CIGAR ------', cigar)
-    #     print('read', len(read))
-    #     print('adjusted_read', len(adjusted_read))
-
-    # adjust length for to make pooling possible
     if len(read_snps) % 4 != 0:
         additional = 4 - len(read_snps) % 4
         for i in range(additional):
             read_snps.append(-1)
 
-    reconstructed_read = ''
-    # for i in read_snps:
-    #     reconstructed_read += reverse_switcher(i)
-    # print(reconstructed_read)
     switched_read_tensor = tf.cast(read_snps, tf.int32)
     # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
     one_hot_snps = tf.one_hot(switched_read_tensor, depth=4, dtype=tf.int8)
-    # return one_hot_snps
-    transposed = tf.transpose(one_hot_snps)
-
-    return transposed
+    return one_hot_snps
 
 
 def decode_read(sequence):
@@ -210,7 +180,28 @@ def encode_sam():
         save_tensor_file(config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']),
                          one_hot_encoded_snp_tensor)
         print('Reads are one hot encoded and saved.')
-
+    if data == 'per_gene':
+        with open(config[data]['mapped_reads_path'] + '.sam') as file:
+            counter = 0
+            for line in file:
+                # -1 because of sam numbering
+                pos = int(line.split('\t')[3]) - 1
+                start = config[data]['start']
+                end = config[data]['end']
+                
+                one_hot_encoded_read_snps = encode_read(pos, line.split('\t')[5], line.split('\t')[9],
+                                                        config[data]['haplotype_length'])
+                if one_hot_encoded_read_snps is not None:
+                    one_hot_encoded_snps.append(one_hot_encoded_read_snps)
+                # print progress
+                counter += 1
+                if counter % 25000 == 0:
+                    print(counter)
+        one_hot_encoded_snp_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
+        # save
+        save_tensor_file(config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']),
+                         one_hot_encoded_snp_tensor)
+        print('Reads are one hot encoded and saved.')
     else:
         with open(config[data]['mapped_reads_path'] + '.sam') as file:
             counter = 0
@@ -267,7 +258,7 @@ def encode_fasta():
     print('Reads are one hot encoded and saved.')
 
 
-def decode(encoded_sequences, ref=False):
+def decode(encoded_sequences, info, ref=False):
     decoded_sequences = []
     for i in range(len(encoded_sequences)):
         decoded_sequences.append('>' + str(i))
@@ -279,7 +270,7 @@ def decode(encoded_sequences, ref=False):
             save_file(config[data]['output_path'] + '_' + str(config[data]['n_clusters']) + '_ref.fasta',
                       decoded_sequences_string)
         else:
-            save_file(config[data]['output_path'] + '_' + str(config[data]['n_clusters']) + '.fasta',
+            save_file(config[data]['output_path'] + '_' + str(config[data]['n_clusters']) + '_' + info + '.fasta',
                       decoded_sequences_string)
     else:
         if ref:
