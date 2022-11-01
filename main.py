@@ -33,53 +33,20 @@ data = config['data']
 # visible_devices = tf.config.get_visible_devices()
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-
 # for device in visible_devices:
 #     assert device.device_type != 'GPU'
 # distribution_strategy = tf.distribute.MirroredStrategy()
 
 
-def test():
-    one_hot_encoded_reads = np.array([[[[1], [0], [0], [0]], [[0], [0], [1], [0]], [[1], [0], [0], [0]]],
-                                      [[[0], [1], [0], [0]], [[0], [0], [1], [0]], [[0], [0], [0], [1]]],
-                                      [[[0], [1], [0], [0]], [[0], [0], [1], [0]], [[0], [0], [0], [1]]],
-                                      [[[0], [1], [0], [0]], [[0], [0], [1], [0]], [[0], [0], [0], [1]]],
-                                      [[[1], [0], [0], [0]], [[0], [1], [0], [0]], [[1], [0], [0], [0]]]])
-    # print(one_hot_encoded_reads)
-    predicted_clusters = np.array([0, 1, 1, 1, 1])
-    # print(predicted_clusters)
-    n_clusters = 2
-    consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-                                                                  predicted_clusters, n_clusters)
-
-    predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(one_hot_encoded_reads.shape[0],
-                                                                                         n_clusters,
-                                                                                         consensus_sequences,
-                                                                                         one_hot_encoded_reads)
-    print(predicted_clusters)
-    # print('mec:', performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences))
-    # print('result:', consensus_sequences)
-
-
 if __name__ == '__main__':
-    first, second = one_hot.encode_delete_me()
-    hd1 = performance.hamming_distance(np.array(first), np.array(second))
-    hd2 = performance.hamming_distance(np.array(second), np.array(first))
-    print(hd1)
-    print(hd2)
-    # exit(-1)
 
-    # test()
-    # exit(-1)
-    # with open("CPR", "rb") as fp:
-    #     old_CPR = pickle.load(fp)
-    # print(old_CPR)
-    # if data == 'created':
-    #     reference_sequences = load_tensor_file(
-    #         config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']))
-    # else:
-    #     reference_sequences = load_tensor_file(config[data]['aligned_ref_path'])
-    # print('\nreference_sequences:\n', one_hot.decode(reference_sequences, True))
+    # file = open('./data/per_gene/reference/snp_positions_p17.txt', 'r')
+    # lines = file.readlines()
+    # output = [str(int(line) - 1) for line in lines]
+    # file2 = open('./data/per_gene/reference/snp_positions_p17.txt', 'w')
+    # final = '\n'.join(output)
+    # print(final)
+    # file2.write(final)
     # exit(-1)
     print(tf.keras.backend.floatx())
     # TODO print config and info
@@ -176,9 +143,6 @@ if __name__ == '__main__':
     dataset = dataset.batch(config[data]['batch_size'])
     prediction_for_kmeans_training = encoder.predict(dataset, verbose=verbose)
 
-    # prediction_for_kmeans_training = encoder.predict(x=one_hot_encoded_reads, batch_size=config[data]['batch_size'],
-    #                                                  verbose=verbose)
-
     kmeans_rep = 10
     best_mec_result = 0
     print('n_clusters:', n_clusters)
@@ -198,9 +162,9 @@ if __name__ == '__main__':
             best_mec_result = new_mec_result
             best_consensus_sequences = consensus_sequences
     # TODO till here <--
-    print('Best MEC after cluster initialisation:', best_mec_result)
-    _, _, cpr = performance.correct_phasing_rate(best_consensus_sequences, 'kmeans_init')
-    print('CRP after centroids:', cpr)
+    # print('Best MEC after cluster initialisation:', best_mec_result)
+    # _, _, cpr = performance.correct_phasing_rate(best_consensus_sequences, 'kmeans_init')
+    # print('CRP after centroids:', cpr)
 
     # TODO delete incl. file
     with open(config[data]['centroids_name'], "wb") as fp:
@@ -211,9 +175,8 @@ if __name__ == '__main__':
     cae_model.get_layer(name='clustering').set_weights([centroids])
 
     old_mec_result = 0
-    for epoch in range(40):  # TODO set to 2000
+    for epoch in range(40):
         print('epoch', epoch)
-        # TODO try if possible
         clustering_output = clustering_model.predict(x=dataset, verbose=config['verbose'])
         # clustering_output = clustering_model.predict(x=one_hot_encoded_reads, verbose=config['verbose'])
         # _, clustering_output = cae_model.predict(x=one_hot_encoded_reads, verbose=config['verbose'])
@@ -223,10 +186,10 @@ if __name__ == '__main__':
         # with open("clustering_output", "rb") as fp:
         #     clustering_output = pickle.load(fp)
         predicted_clusters = np.argmax(clustering_output, axis=1)
-        # print('number of clusters')
-        # print('0', np.count_nonzero(predicted_clusters == 0))
-        # print('1', np.count_nonzero(predicted_clusters == 1))
-        # print('2', np.count_nonzero(predicted_clusters == 2))
+        print('number of clusters')
+        print('0', np.count_nonzero(predicted_clusters == 0))
+        print('1', np.count_nonzero(predicted_clusters == 1))
+        print('2', np.count_nonzero(predicted_clusters == 2))
         # print('3', np.count_nonzero(predicted_clusters == 3))
         # print('4', np.count_nonzero(predicted_clusters == 4))
 
@@ -263,37 +226,121 @@ if __name__ == '__main__':
     print('min_indexes after training (reversed):', min_indexes)
 
     # add deletions
-    consensus_sequences = consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-                                                                                        predicted_clusters,
-                                                                                        n_clusters, last=True)
+    # consensus_sequences = consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+    #                                                                                     predicted_clusters,
+    #                                                                                     n_clusters, last=True)
+    #
+    # _, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'deletion_added')
+    # print('CRP after last:', cpr)
+    # print('min_indexes after last:', min_indexes)
 
-    _, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'deletion_added')
-    print('CRP after last:', cpr)
-    print('min_indexes after last:', min_indexes)
-
-    _, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'reverse2_after_training', reverse=True)
-    print('CRP after training (reversed 2):', cpr)
-    print('min_indexes after training (reversed 2):', min_indexes)
+    # _, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'reverse2_after_training', reverse=True)
+    # print('CRP after training (reversed 2):', cpr)
+    # print('min_indexes after training (reversed 2):', min_indexes)
     # # correction -> converge
     # old_mec_result = 0
     # new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+    # while new_mec_result != old_mec_result:
+    #     index = []
+    #     for i in range(one_hot_encoded_reads.shape[0]):
+    #         dis = np.zeros((consensus_sequences.shape[0]))
+    #         for j in range(consensus_sequences.shape[0]):
+    #             dis[j] = performance.hamming_distance(one_hot_encoded_reads[i, :], consensus_sequences[j, :])
+    #         index.append(np.argmin(dis))
     #
+    #     new_consensus_sequences = np.zeros(consensus_sequences.shape)
+    #     for i in range(consensus_sequences.shape[0]):
+    #         consensus_sequences[i, :] = np.argmax(ACGT_count(SNVmatrix[np.array(index) == i, :]), axis=1) + 1
+    #     consensus_sequences = new_consensus_sequences.copy()
+    #     old_mec_result = new_mec_result
+    #     new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+    # old_mec_result = 0
     # while old_mec_result != new_mec_result:
     #     old_mec_result = new_mec_result
     #     predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(n_clusters,
     #                                                                                          consensus_sequences,
     #                                                                                          one_hot_encoded_reads)
     #
-    #     consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
-    #                                                                   predicted_clusters, n_clusters)
-    #     new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+
+    old_mec_result = 0
+    new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+
+    count = 0
+    while new_mec_result != old_mec_result:
+        predicted_clusters = majority_voting.assign_reads_to_best_fitting_consensus_sequence(n_clusters,
+                                                                                             consensus_sequences,
+                                                                                             one_hot_encoded_reads)
+        predicted_clusters_array = np.argmax(predicted_clusters, axis=1)
+        new_consensus_sequences = []
+        for i in range(n_clusters):
+            reads_of_cluster_n = one_hot_encoded_reads[np.where(predicted_clusters_array == i, )[0]]
+            if len(reads_of_cluster_n) != 0:
+                clustered_reads_sum = reads_of_cluster_n.sum(axis=0)
+                consensus_sequence = np.zeros(consensus_sequences[0].shape)
+                uncovered_positions = np.where(np.sum(clustered_reads_sum, axis=1) == 0)[0]
+                for j in range(clustered_reads_sum.shape[0]):
+                    print(clustered_reads_sum[j].sum(axis=0))
+                    threshold = n_clusters * reads_of_cluster_n.shape[0] / 10
+                    print('reads_of_cluster_n.shape[0]', reads_of_cluster_n.shape[0])  # ~ 15
+                    # if clustered_reads_sum[j].sum(axis=0) != 0:
+                    if clustered_reads_sum[j].sum(axis=0) > reads_of_cluster_n.shape[1] / 2:
+                        np.argmax(clustered_reads_sum[j])
+                        consensus_sequence[j, np.argmax(clustered_reads_sum[j])] = 1
+                new_consensus_sequences.append(consensus_sequence)
+
+        consensus_sequences = new_consensus_sequences.copy()
+        old_mec_result = new_mec_result
+        new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+        count += 1
+        #
+        #         if clustered_reads_sum[j].sum(axis=0) != 0:
+        #             # if clustered_reads_sum[i].sum(axis=0) > clustered_reads.shape[1] / 16:
+        #             if len(np.where(clustered_reads_sum[j][:] == np.max(clustered_reads_sum[j][:]))[0]) == 1:
+        # for i in range(consensus_sequences.shape[0]):
+        #     reads_single = one_hot_encoded_reads[np.array(index) == i, :]
+        #     single_sta = np.zeros((n_SNV, 4))
+        #     if len(reads_single) != 0:
+        #         single_sta = ACGT_count(reads_single)
+        #     new_haplo[i, :] = np.argmax(single_sta, axis=1) + 1
+        #     uncov_pos = np.where(np.sum(single_sta, axis=1) == 0)[0]
+        #     if len(uncov_pos) != 0:
+        #         new_haplo[i, uncov_pos] = 0
+    print(new_mec_result)
+
+    # consensus_sequences = []
+    # # TODO FIX MEEEEEEEEE
+    # for i in range(n_clusters):
+    #     reads_of_cluster_n = one_hot_encoded_reads[np.where(predicted_clusters == i)[0]]
+    #     new_consensus_sequence = np.zeros((reads_of_cluster_n.shape[1], 4, 1), dtype=int)
     #
-    # min_sum, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'correction')
+    #     clustered_reads_sum = reads_of_cluster_n.sum(axis=0)
     #
-    # print('final MEC:', new_mec_result)
-    # print('final CPR:', cpr)
-    # print('final min_indexes:', min_indexes)
-    # with open("CPR", "wb") as fp:
-    #     pickle.dump([min_sum, min_indexes, cpr], fp)
+    #     for j in range(clustered_reads_sum.shape[0]):
+    #         if clustered_reads_sum[j].sum(axis=0) != 0:
+    #             #  print(clustered_reads_sum[j])
+    #             #  print(np.argmax(clustered_reads_sum[j]))
+    #             # if clustered_reads_sum[i].sum(axis=0) > clustered_reads.shape[1] / 16:
+    #             new_consensus_sequence[j, np.argmax(clustered_reads_sum[j])] = 1
+    #     # consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
+    #     #                                                               predicted_clusters, n_clusters)
+    #
+    #     consensus_sequences.append(new_consensus_sequence)
+    # print(one_hot.decode(consensus_sequences, ''))
+    # new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
+    # print(new_mec_result)
+    min_sum, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'correction')
+
+    print('final MEC:', new_mec_result)
+    print('final CPR:', cpr)
+    print('final min_indexes:', min_indexes)
+
+    min_sum, min_indexes, cpr = performance.correct_phasing_rate(consensus_sequences, 'correction_reversed',
+                                                                 reverse=True)
+
+    print('final MEC (reversed):', new_mec_result)
+    print('final CPR (reversed):', cpr)
+    print('final min_indexes (reversed):', min_indexes)
+    with open("CPR", "wb") as fp:
+        pickle.dump([min_sum, min_indexes, cpr], fp)
 
     print(f'{ColorCoding.OKGREEN}FINITO{ColorCoding.ENDC}')

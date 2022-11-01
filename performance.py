@@ -38,6 +38,17 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
     else:
         reference_sequences = load_tensor_file(config[data]['aligned_ref_path'])
 
+    if data == 'per_gene':
+        prov = []
+        for reference_sequence in reference_sequences:
+            sequence = list(reference_sequence[config[data]['start_ref']:config[data]['end_ref']])
+            if len(sequence) % 4 != 0:
+                additional = 4 - len(sequence) % 4
+                for i in range(additional):
+                    sequence.append([[0], [0], [0], [0]])
+            prov.append(np.array(sequence))
+        reference_sequences = np.array(prov)
+
     print('\nreference_sequences:\n', one_hot.decode(reference_sequences, info, True))
     print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences, info))
 
@@ -49,18 +60,6 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
     distances = np.zeros((len(consensus_sequences), len(reference_sequences)))
     for cs_index, consensus_sequence in enumerate(consensus_sequences):
         for ref_index, reference_sequence in enumerate(reference_sequences):
-            hd_per_ref = []
-            # if last element not part of sequence
-            # -> move reference sequence to the right till last element is part of sequence
-            # if np.sum(reference_sequence[-1]) != 0:
-            #     hd_per_ref.append(hamming_distance(consensus_sequence, reference_sequence))
-            # else:
-            #     for index in range(len(reference_sequence - 1), -1, -1):
-            #         if np.sum(reference_sequence[-1]) != 0:
-            #             break
-            #         hd_per_ref.append(hamming_distance(consensus_sequence, reference_sequence))
-            #         reference_sequence = np.roll(reference_sequence, 1, axis=0)
-            # distances[cs_index][ref_index] = min(hd_per_ref)
             if reverse:
                 distances[cs_index][ref_index] = hamming_distance(reference_sequence, consensus_sequence)
             else:

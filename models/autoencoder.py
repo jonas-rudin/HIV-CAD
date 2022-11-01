@@ -105,7 +105,7 @@ def get_autoencoder_key_points_with_pooling(input_shape):
     encoder_prelu_2 = PReLU(name='encoder_PReLU_2')(encoder_conv2d_2)
     encoder_dropout_2 = Dropout(0, name='encoder_Dropout_2')(encoder_prelu_2)
 
-    encoder_pooling_2 = AvgPool2D((1, 1), strides=(2, 2))(encoder_dropout_2)
+    encoder_pooling_2 = AvgPool2D((2, 2), strides=(2, 2), padding='same')(encoder_dropout_2)
     # 3. layer
     encoder_conv2d_3 = Conv2D(filters=base_filter * 4,
                               kernel_size=[3, 1],
@@ -113,7 +113,7 @@ def get_autoencoder_key_points_with_pooling(input_shape):
                               padding='same', name='encoder_Conv2D_3')(encoder_pooling_2)
     encoder_prelu_3 = PReLU(name='encoder_PReLU_3')(encoder_conv2d_3)
     encoder_dropout_3 = Dropout(0, name='encoder_Dropout_3')(encoder_prelu_3)
-    encoder_pooling_3 = AvgPool2D((1, 1), strides=(2, 2))(encoder_dropout_3)
+    encoder_pooling_3 = AvgPool2D((2, 2), strides=(2, 2), padding='same')(encoder_dropout_3)
 
     # 4. layer
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_pooling_3)

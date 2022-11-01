@@ -62,6 +62,9 @@ snps_index = []
 if data == 'created':
     with open(config[data]['snp_positions'] + '_' + str(config[data]['n_clusters']) + '.txt', 'r') as fp:
         lines = fp.readlines()
+elif data == 'per_gene':
+    with open(config[data]['snp_positions'], 'r') as fp:
+        lines = fp.readlines()
 else:
     with open(config[data]['snp_positions'], 'r') as fp:
         lines = fp.readlines()
@@ -90,7 +93,6 @@ def reverse_switcher(base):
 def encode_read(position, cigar, read, length):
     # adjust read according to CIGAR string
     adjusted_read = ''
-
     if 'I' in cigar or 'D' in cigar or 'S' in cigar:
         cigar_position = 0
         cigar_list = [''.join(g) for _, g in groupby(cigar, str.isalpha)]
@@ -132,6 +134,66 @@ def encode_read(position, cigar, read, length):
     # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
     one_hot_snps = tf.one_hot(switched_read_tensor, depth=4, dtype=tf.int8)
     return one_hot_snps
+
+
+def encode_read_between(position, cigar, read, start, end, base_counter, other_counter):
+    # adjust read according to CIGAR string
+    adjusted_read = ''
+    if 'I' in cigar or 'D' in cigar or 'S' in cigar:
+        cigar_position = 0
+        cigar_list = [''.join(g) for _, g in groupby(cigar, str.isalpha)]
+        # delete insertions and add '-' for deletion
+        for index in range(0, len(cigar_list), 2):
+            if cigar_list[index + 1] == 'S':
+                if int(cigar_list[index]) > 3:
+                    return None, base_counter, other_counter
+            if cigar_list[index + 1] == 'D':
+                adjusted_read += '-' * int(cigar_list[index])
+            elif cigar_list[index + 1] != 'I':
+                adjusted_read += read[cigar_position:(cigar_position + int(cigar_list[index]))]
+                cigar_position += int(cigar_list[index])
+    else:
+        adjusted_read = read
+
+    switched_read = []
+    for base in adjusted_read:
+        switched_read.append(switcher(base))
+    if sum(switched_read) == 0:
+        return None, base_counter, other_counter
+        # position read in list of length of haplotype
+    positioned_read = []
+    if position > start:
+        positioned_read = [-1] * (position - start + 1)
+    positioned_read.extend(switched_read)
+    if position + len(read) < end:
+        positioned_read.extend(-1 for _ in range(end - len(positioned_read)))
+
+    # if positioned_read[16] != -1:
+    #     base_counter[0][positioned_read[16]] += 1
+    # if positioned_read[25] != -1:
+    #     base_counter[1][positioned_read[25]] += 1
+    # if positioned_read[27] != -1:
+    #     base_counter[2][positioned_read[27]] += 1
+    # if positioned_read[31] != -1:
+    #     base_counter[3][positioned_read[31]] += 1
+    # if positioned_read[37] != -1:
+    #     base_counter[4][positioned_read[37]] += 1
+    positioned_read_short = positioned_read[:end - start]
+
+    read_snps = [positioned_read_short[i] for i in snps_index]
+    if read_snps[0] == 3:
+        # print(read_snps)
+        other_counter[3] += 1
+    if len(read_snps) % 4 != 0:
+        additional = 4 - len(read_snps) % 4
+        for i in range(additional):
+            read_snps.append(-1)
+
+    read_snps_tensor = tf.cast(read_snps, tf.int32)
+
+    # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
+    one_hot_snps = tf.one_hot(read_snps_tensor, depth=4, dtype=tf.int8)
+    return one_hot_snps, base_counter, other_counter
 
 
 def decode_read(sequence):
@@ -180,28 +242,59 @@ def encode_sam():
         save_tensor_file(config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']),
                          one_hot_encoded_snp_tensor)
         print('Reads are one hot encoded and saved.')
-    if data == 'per_gene':
-        with open(config[data]['mapped_reads_path'] + '.sam') as file:
+    elif data == 'per_gene':
+        if config[data]['cleaned']:
             counter = 0
-            for line in file:
-                # -1 because of sam numbering
-                pos = int(line.split('\t')[3]) - 1
-                start = config[data]['start']
-                end = config[data]['end']
-                
-                one_hot_encoded_read_snps = encode_read(pos, line.split('\t')[5], line.split('\t')[9],
-                                                        config[data]['haplotype_length'])
-                if one_hot_encoded_read_snps is not None:
-                    one_hot_encoded_snps.append(one_hot_encoded_read_snps)
-                # print progress
-                counter += 1
-                if counter % 25000 == 0:
-                    print(counter)
-        one_hot_encoded_snp_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
+            with open(config[data]['reads']) as file:
+                for line in file:
+                    # counter += 1
+                    snps = line[:-1].replace(' ', '')
+                    snps_list = [int(base) - 1 for base in snps]
+
+                    if len(snps_list) % 4 != 0:
+                        additional = 4 - len(snps_list) % 4
+                        for i in range(additional):
+                            snps_list.append(-1)
+
+                    snps_tensor = tf.cast(snps_list, tf.int32)
+                    #
+                    # # one_hot encode 0 -> [1,0,0,0], 1 -> [0,1,0,0] ... -1 -> [0,0,0,0]
+                    one_hot_snps = tf.one_hot(snps_tensor, depth=4, dtype=tf.int8)
+                    one_hot_encoded_snps.append(one_hot_snps)
+        else:
+            start = config[data]['start']
+            end = config[data]['end']
+            # length must be dividable by 4 to work with pooling and upsampling
+            end += (4 - (end - start) % 4)
+
+            base_counter = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+            other_counter = [0, 0, 0, 0]
+            with open(config[data]['mapped_reads_path'] + '.sam') as file:
+                counter = 0
+                for line in file:
+                    pos = int(line.split('\t')[3]) - 1
+                    length = len(line.split('\t')[9])
+                    if pos > end or (pos + length) < start:
+                        continue
+                    counter += 1
+                    one_hot_encoded_read_snps, base_counter, other_counter = encode_read_between(pos,
+                                                                                                 line.split('\t')[5],
+                                                                                                 line.split('\t')[9],
+                                                                                                 start,
+                                                                                                 end, base_counter,
+                                                                                                 other_counter)
+                    if one_hot_encoded_read_snps is not None:
+                        one_hot_encoded_snps.append(one_hot_encoded_read_snps)
+                    if counter % 25000 == 0:
+                        print(counter)
+            print(np.sum(one_hot_encoded_snps, axis=0)[0])
+            print(np.sum(one_hot_encoded_snps, axis=0)[1])
+
+        one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
         # save
-        save_tensor_file(config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']),
-                         one_hot_encoded_snp_tensor)
+        save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
+
     else:
         with open(config[data]['mapped_reads_path'] + '.sam') as file:
             counter = 0

@@ -19,9 +19,7 @@ def last_majority_vote_alignment(clustered_reads, overall_reads_sum):
             sum_of_neighbours = 0
             for j in range(-2, 3):
                 sum_of_neighbours += clustered_reads_sum[i + j].sum(axis=0)
-            print(sum_of_neighbours)
             if sum_of_neighbours == 0:
-                print('sum is zero')
                 not_covered_neighbours = [i - 2, i - 1, i, i + 1, i + 2]
                 for i in not_covered_neighbours:
                     if np.sum(overall_reads_sum[i][:]) != 0:
@@ -43,7 +41,11 @@ def majority_vote_alignment(clustered_reads, overall_reads_sum):
     for i in range(clustered_reads_sum.shape[0]):
         if clustered_reads_sum[i].sum(axis=0) != 0:
             # if clustered_reads_sum[i].sum(axis=0) > clustered_reads.shape[1] / 16:
-            consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
+            if len(np.where(clustered_reads_sum[i][:] == np.max(clustered_reads_sum[i][:]))[0]) == 1:
+                consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
+            else:
+                max_positions = np.where(clustered_reads_sum[i][:] == max(clustered_reads_sum[i][:]))[0]
+                consensus_sequence[i, choice(max_positions)] = 1
     for i in indexes_not_covered_by_reads:
         if np.sum(overall_reads_sum[i][:]) != 0:
             if len(np.where(overall_reads_sum[i][:] == np.max(overall_reads_sum[i][:]))[0]) == 1:
@@ -58,10 +60,14 @@ def majority_vote_alignment(clustered_reads, overall_reads_sum):
 
 def align_reads_per_cluster(reads, predicted_clusters, n_clusters, last=False):
     majority_consensus_sequences = []
-    predicted_clusters_array = np.array(predicted_clusters)
+    # predicted_clusters_array = np.array(predicted_clusters)
+    # print(predicted_clusters)
+    # print(predicted_clusters.shape)
+    # print(predicted_clusters_array.shape)
+    # print(predicted_clusters_array)
     reads_sum = reads.sum(axis=0)
     for i in range(n_clusters):
-        reads_of_cluster_n = reads[np.where(predicted_clusters_array == i)[0]]
+        reads_of_cluster_n = reads[np.where(predicted_clusters == i)[0]]
         if last:
             majority_consensus_sequences.append(last_majority_vote_alignment(reads_of_cluster_n, reads_sum))
         else:
