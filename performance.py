@@ -10,12 +10,6 @@ config = get_config()
 data = config['data']
 
 
-# old shape
-# def hamming_distance(read, consensus_sequence):
-#     index_of_non_zero = ([np.where(read != 0)][0][0])
-#     difference = read[index_of_non_zero] - consensus_sequence[index_of_non_zero]
-#     return np.count_nonzero(difference) / 2
-
 def hamming_distance(read, consensus_sequence):
     difference = (consensus_sequence - read)[np.where(read != 0)]
     return np.count_nonzero(difference)
@@ -77,7 +71,14 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             min_indexes = permutation
             min_sum = tmp_sum
 
-    print('min_sum', min_sum)
+    if data == 'per_gene':
+        cpr_per_gene_and_strain = np.zeros((len(reference_sequences)))
+        name_of_reference_strains = ['HXB2', '89.6', 'JRCSF', 'NL43', 'YU2']
+        print('CPR per gene:')
+        for i in range(5):
+            cpr_per_gene_and_strain[i] = 1 - (distances[i][min_indexes[i]] / len(reference_sequence))
+            print(name_of_reference_strains[i], cpr_per_gene_and_strain[i])
+
+        # TODO print percentage of reads per strain
     cpr = 1 - (min_sum / (len(consensus_sequences) * reference_sequences.shape[1]))
-    # print(cpr)
     return min_sum, min_indexes, cpr

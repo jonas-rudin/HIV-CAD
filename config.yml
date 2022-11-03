@@ -131,6 +131,7 @@ per_gene:
   pooling: True
 
     #  p17
+    #  name: p17
     #  reads: ./data/per_gene/reads/p17.txt
     #  one_hot_path: ./data/per_gene/encoded_snps_p17
     #  weights_path: ./results/models/weights_p17
@@ -142,6 +143,7 @@ per_gene:
     #  end_ref: 47
 
     #  p24
+    #  name: p24
     #  reads: ./data/per_gene/reads/p24.txt
     #  one_hot_path: ./data/per_gene/illumina_encoded_snps_p24
     #  weights_path: ./results/models/weights_p24
@@ -150,20 +152,23 @@ per_gene:
     #  start: 1185
     #  end: 1879
     #  start_ref: 47
-  #  end_ref: 92
+    #  end_ref: 92
 
-  #  p2p6
-  reads: ./data/per_gene/reads/p2p6.txt
-  one_hot_path: ./data/per_gene/illumina_encoded_snps_p2p6
-  weights_path: ./results/models/illumina_weights_p2p6
-  output_path: ./results/illumina_output_p2p6
-  snp_positions: ./data/per_gene/reference/snp_positions_p2p6.txt
-  start: 1878
-  end: 2292
-  start_ref: 92
-  end_ref: 132
+    #  p2p6
+    #  name: p2p6
+    #  reads: ./data/per_gene/reads/p2p6.txt
+    #  one_hot_path: ./data/per_gene/illumina_encoded_snps_p2p6
+    #  weights_path: ./results/models/illumina_weights_p2p6
+    #  output_path: ./results/illumina_output_p2p6
+    #  snp_positions: ./data/per_gene/reference/snp_positions_p2p6.txt
+    #  start: 1878
+    #  end: 2292
+    #  start_ref: 92
+    #  end_ref: 123
+    #      end_ref: 132
 
   #  PR
+  #  name: PR
   #  reads: ./data/per_gene/reads/PR.txt
   #  one_hot_path: ./data//per_gene/illumina_encoded_snps_PR
   #  weights_path: ./results/models/illumina_weights_PR
@@ -175,6 +180,7 @@ per_gene:
   #  end_ref: 140
 
   #  RT
+  #  name: RT
   #  reads: ./data/per_gene/reads/RT.txt
   #  one_hot_path: ./data/per_gene/illumina_encoded_snps_RT
   #  weights_path: ./results/models/illumina_weights_RT
@@ -186,7 +192,8 @@ per_gene:
   #  end_ref: 227
 
   #  RNase
-  #  reads: ./data/per_gene/reads/RT.txt
+  #  name: RNase
+  #  reads: ./data/per_gene/reads/RNase.txt
   #  one_hot_path: ./data/per_gene/illumina_encoded_snps_RNase
   #  weights_path: ./results/models/illumina_weights_RNase
   #  output_path: ./results/illumina_output_RNase
@@ -197,17 +204,19 @@ per_gene:
   #  end_ref: 264
 
   #  int
-  #  reads: ./data/per_gene/reads/int.txt
-  #  one_hot_path: ./data/per_gene/illumina_encoded_snps_int
-  #  weights_path: ./results/models/illumina_weights_int
-  #  output_path: ./results/illumina_output_int
-  #  snp_positions: ./data/per_gene/reference/snp_positions_int.txt
-  #  start: 4229
-  #  end: 5096
-  #  start_ref: 264
-  #  end_ref: 311
+  name: int
+  reads: ./data/per_gene/reads/int.txt
+  one_hot_path: ./data/per_gene/illumina_encoded_snps_int
+  weights_path: ./results/models/illumina_weights_int
+  output_path: ./results/illumina_output_int
+  snp_positions: ./data/per_gene/reference/snp_positions_int.txt
+  start: 4229
+  end: 5096
+  start_ref: 264
+  end_ref: 310
 
   #  vif
+  #  name: vif
   #  reads: ./data/per_gene/reads/vif.txt
   #  one_hot_path: ./data/per_gene/illumina_encoded_snps_vif
   #  weights_path: ./results/models/illumina_weights_vif
@@ -219,17 +228,19 @@ per_gene:
   #  end_ref: 370
 
   #  vpr
-#  reads: ./data/per_gene/reads/vpr.txt
-#  one_hot_path: ./data/per_gene/illumina_encoded_snps_vpr
-#  weights_path: ./results/models/illumina_weights_vpr
-#  output_path: ./results/illumina_output_vpr
-#  snp_positions: ./data/per_gene/reference/snp_positions_vpr.txt
-#  start: 5558
-#  end: 5850
-#  start_ref: 367
-#  end_ref: 399
+  #  name: vpr
+  #  reads: ./data/per_gene/reads/vpr.txt
+  #  one_hot_path: ./data/per_gene/illumina_encoded_snps_vpr
+  #  weights_path: ./results/models/illumina_weights_vpr
+  #  output_path: ./results/illumina_output_vpr
+  #  snp_positions: ./data/per_gene/reference/snp_positions_vpr.txt
+  #  start: 5558
+  #  end: 5850
+  #  start_ref: 367
+  #  end_ref: 399
 
-#  vpu
+  #  vpu
+  #  name: vpu
 #  reads: ./data/per_gene/reads/vpu.txt
 #  one_hot_path: ./data/per_gene/illumina_encoded_snps_vpu
 #  weights_path: ./results/models/illumina_weights_vpu
@@ -241,6 +252,7 @@ per_gene:
 #  end_ref: 434
 
 #  gp120
+#  name: gp120
 #  reads: ./data/per_gene/reads/gp120.txt
 #  one_hot_path: ./data/per_gene/illumina_encoded_snps_gp120
 #  weights_path: ./results/models/illumina_weights_gp120
@@ -252,6 +264,7 @@ per_gene:
 #  end_ref: 638
 
 #  gp41
+#  name: gp41
 #  reads: ./data/per_gene/reads/gp41.txt
 #  one_hot_path: ./data/per_gene/illumina_encoded_snps_gp41
 #  weights_path: ./results/models/illumina_weights_gp41
@@ -263,6 +276,7 @@ per_gene:
 #  end_ref: 770
 
 #  nef
+#  name: nef
 #  reads: ./data/per_gene/reads/nef.txt
 #  one_hot_path: ./data/per_gene/illumina_encoded_snps_nef
 #  weights_path: ./results/models/illumina_weights_nef
