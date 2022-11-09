@@ -59,17 +59,19 @@ data = config['data']
 
 
 snps_index = []
-if data == 'created':
-    with open(config[data]['snp_positions'] + '_' + str(config[data]['n_clusters']) + '.txt', 'r') as fp:
-        lines = fp.readlines()
-elif data == 'per_gene':
+
+if data != 'created':
     with open(config[data]['snp_positions'], 'r') as fp:
         lines = fp.readlines()
-else:
-    with open(config[data]['snp_positions'], 'r') as fp:
-        lines = fp.readlines()
-for line in lines:
-    snps_index.append(int(line[:-1]))
+    for line in lines:
+        snps_index.append(int(line[:-1]))
+
+
+# elif data != 'created':
+#     with open(config[data]['snp_positions'], 'r') as fp:
+#         lines = fp.readlines()
+#     for line in lines:
+#         snps_index.append(int(line[:-1]))
 
 
 def switcher(base):
@@ -92,6 +94,7 @@ def reverse_switcher(base):
 
 def encode_read(position, cigar, read, length):
     # adjust read according to CIGAR string
+    global snps_index
     adjusted_read = ''
     if 'I' in cigar or 'D' in cigar or 'S' in cigar:
         cigar_position = 0
@@ -99,11 +102,13 @@ def encode_read(position, cigar, read, length):
         # delete insertions and add '-' for deletion
         for index in range(0, len(cigar_list), 2):
             if cigar_list[index + 1] == 'S':
-                if int(cigar_list[index]) > 5:
-                    return
-            if cigar_list[index + 1] == 'D':
+                if int(cigar_list[index]) > 3:
+                    return None
+            elif cigar_list[index + 1] == 'D':
                 adjusted_read += '-' * int(cigar_list[index])
-            elif cigar_list[index + 1] != 'I':
+            elif cigar_list[index + 1] == 'I':
+                cigar_position += int(cigar_list[index])
+            elif cigar_list[index + 1] == 'M':
                 adjusted_read += read[cigar_position:(cigar_position + int(cigar_list[index]))]
                 cigar_position += int(cigar_list[index])
 
@@ -137,6 +142,8 @@ def encode_read(position, cigar, read, length):
 
 
 def encode_read_between(position, cigar, read, start, end, base_counter, other_counter):
+    global snps_index
+
     # adjust read according to CIGAR string
     adjusted_read = ''
     if 'I' in cigar or 'D' in cigar or 'S' in cigar:
@@ -147,9 +154,11 @@ def encode_read_between(position, cigar, read, start, end, base_counter, other_c
             if cigar_list[index + 1] == 'S':
                 if int(cigar_list[index]) > 3:
                     return None, base_counter, other_counter
-            if cigar_list[index + 1] == 'D':
+            elif cigar_list[index + 1] == 'D':
                 adjusted_read += '-' * int(cigar_list[index])
-            elif cigar_list[index + 1] != 'I':
+            elif cigar_list[index + 1] == 'I':
+                cigar_position += int(cigar_list[index])
+            elif cigar_list[index + 1] == 'M':
                 adjusted_read += read[cigar_position:(cigar_position + int(cigar_list[index]))]
                 cigar_position += int(cigar_list[index])
     else:
@@ -167,22 +176,10 @@ def encode_read_between(position, cigar, read, start, end, base_counter, other_c
     positioned_read.extend(switched_read)
     if position + len(read) < end:
         positioned_read.extend(-1 for _ in range(end - len(positioned_read)))
-
-    # if positioned_read[16] != -1:
-    #     base_counter[0][positioned_read[16]] += 1
-    # if positioned_read[25] != -1:
-    #     base_counter[1][positioned_read[25]] += 1
-    # if positioned_read[27] != -1:
-    #     base_counter[2][positioned_read[27]] += 1
-    # if positioned_read[31] != -1:
-    #     base_counter[3][positioned_read[31]] += 1
-    # if positioned_read[37] != -1:
-    #     base_counter[4][positioned_read[37]] += 1
     positioned_read_short = positioned_read[:end - start]
 
     read_snps = [positioned_read_short[i] for i in snps_index]
     if read_snps[0] == 3:
-        # print(read_snps)
         other_counter[3] += 1
     if len(read_snps) % 4 != 0:
         additional = 4 - len(read_snps) % 4
@@ -210,10 +207,7 @@ def decode_read(sequence):
 
 def encode_sam():
     # check if file already exists
-    path = ''
-    if data == 'created':
-        path = '_' + str(config[data]['n_clusters'])
-    if config['load'] and exists(config[data]['one_hot_path'] + path + '.npy'):
+    if config['load'] and not data == 'created' and exists(config[data]['one_hot_path'] + '.npy'):
         print('reads are already one hot encoded')
         return
     # read reads
@@ -222,8 +216,10 @@ def encode_sam():
     # read file line by line and one hot encode reads
 
     if data == 'created':
-        with open(config[data]['mapped_reads_path'] + '_' + str(config[data]['n_clusters']) + '.sam') as file:
-
+        path = '_' + str(config[data]['n_clusters']) + '_' + str(
+            config[data]['coverage']) + '_' + str(config[data]['read_length']) + '_' + str(
+            config[data]['sequencing_error'])
+        with open(config[data]['mapped_reads_path'] + path + '.sam') as file:
             counter = 0
             for line in file:
                 # -1 because of sam numbering
@@ -239,7 +235,8 @@ def encode_sam():
                     print(counter)
         one_hot_encoded_snp_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
         # save
-        save_tensor_file(config[data]['one_hot_path'] + '_' + str(config[data]['n_clusters']),
+
+        save_tensor_file(config[data]['one_hot_path'] + path,
                          one_hot_encoded_snp_tensor)
         print('Reads are one hot encoded and saved.')
     elif data == 'per_gene':
@@ -287,8 +284,6 @@ def encode_sam():
                         one_hot_encoded_snps.append(one_hot_encoded_read_snps)
                     if counter % 25000 == 0:
                         print(counter)
-            print(np.sum(one_hot_encoded_snps, axis=0)[0])
-            print(np.sum(one_hot_encoded_snps, axis=0)[1])
 
         one_hot_encoded_reads_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
         # save
@@ -322,8 +317,13 @@ def encode_fasta():
     one_hot_encoded_sequences = []
     print('reading file: REF.fasta')
     # read file line by line and one hot encode sequences
-    counter = 0
+    global snps_index
     if data == 'created':
+        if len(snps_index) == 0:
+            with open(config[data]['snp_positions'] + '_' + str(config[data]['n_clusters']) + '.txt', 'r') as fp:
+                lines = fp.readlines()
+            for line in lines:
+                snps_index.append(int(line[:-1]))
         with open(config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']) + '.fasta') as file:
             for line in file:
                 if line[0] != '>':
@@ -356,7 +356,6 @@ def decode(encoded_sequences, info, ref=False):
     for i in range(len(encoded_sequences)):
         decoded_sequences.append('>' + str(i))
         decoded_sequences.append(decode_read(encoded_sequences[i]))
-        # print(decoded_sequences[2 * i], decoded_sequences[2 * i + 1])
     decoded_sequences_string = '\n'.join(decoded_sequences)
     if data == 'created':
         if ref:

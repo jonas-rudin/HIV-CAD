@@ -1,4 +1,5 @@
 import os
+import time
 
 import one_hot
 from helpers.config import get_config
@@ -8,16 +9,20 @@ data = config['data']
 
 silence = ''
 
+
 # if config['verbose'] == 0:
 #     silence = ' >/dev/null 2>&1'
 
 
-if __name__ == '__main__':
-
+def prepare_data():
     if data == 'created':
-        read_file = config[data]['reads_path'] + '_' + str(config[data]['n_clusters'])
+        read_file = config['created']['reads_path'] + '_' + str(config[data]['n_clusters']) + '_' + str(
+            config[data]['coverage']) + '_' + str(config[data]['read_length']) + '_' + str(
+            config[data]['sequencing_error'])
         reference_file = config[data]['longest_path'] + '_' + str(config[data]['n_clusters']) + '.fasta'
-        mapped_reads_file = config[data]['mapped_reads_path'] + '_' + str(config[data]['n_clusters'])
+        mapped_reads_file = config[data]['mapped_reads_path'] + '_' + str(config[data]['n_clusters']) + '_' + str(
+            config[data]['coverage']) + '_' + str(config[data]['read_length']) + '_' + str(
+            config[data]['sequencing_error'])
 
     else:
         read_file = config[data]['reads_path']
@@ -35,7 +40,7 @@ if __name__ == '__main__':
     os.system(bwa_mem_cmd)
     print('aligned')
 
-    if data == 'illumina' or data == 'created':
+    if data == 'illumina' or (data == 'created' and config[data]['read_length']):
         remove_low_quality_score_cmd = 'samtools view -Sq 59 -e \'length(seq)>150\' ' + read_file + '.sam > ' + mapped_reads_file + '.sam'
         os.system(remove_low_quality_score_cmd)
         print('only aligned with quality score over 60 and bp length greater than 150')
@@ -45,8 +50,12 @@ if __name__ == '__main__':
         os.system(remove_unaligned_cmd)
         print('only aligned with quality score over 60 and bp length greater than 250')
 
-    # time.sleep(15)
+    time.sleep(1)
     one_hot.encode_fasta()
-    print('Done')
+    print('Data Prepared')
 
     # one_hot.encode_fasta()
+
+
+if __name__ == "__main__":
+    prepare_data()

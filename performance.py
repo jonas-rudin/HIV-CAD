@@ -2,7 +2,6 @@ import itertools
 
 import numpy as np
 
-import one_hot
 from helpers.IO import load_tensor_file
 from helpers.config import get_config
 
@@ -31,7 +30,6 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']))
     else:
         reference_sequences = load_tensor_file(config[data]['aligned_ref_path'])
-
     if data == 'per_gene':
         prov = []
         for reference_sequence in reference_sequences:
@@ -43,8 +41,8 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             prov.append(np.array(sequence))
         reference_sequences = np.array(prov)
 
-    print('\nreference_sequences:\n', one_hot.decode(reference_sequences, info, True))
-    print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences, info))
+    # print('\nreference_sequences:\n', one_hot.decode(reference_sequences, info, True))
+    # print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences, info))
 
     if len(consensus_sequences) != len(reference_sequences):
         print(
@@ -77,8 +75,15 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
         print('CPR per gene:')
         for i in range(5):
             cpr_per_gene_and_strain[i] = 1 - (distances[i][min_indexes[i]] / len(reference_sequence))
-            print(name_of_reference_strains[i], cpr_per_gene_and_strain[i])
+            # print(name_of_reference_strains[i], np.round((100 * cpr_per_gene_and_strain[i]), 1))
+            print(np.round((100 * cpr_per_gene_and_strain[i]), 1))
 
         # TODO print percentage of reads per strain
     cpr = 1 - (min_sum / (len(consensus_sequences) * reference_sequences.shape[1]))
+    # print(type(min_sum))
+    # print(min_sum)
+    # print(type(min_indexes))
+    # print(min_indexes)
+    # print(type(cpr))
+    # print(cpr)
     return min_sum, min_indexes, cpr

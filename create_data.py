@@ -14,7 +14,8 @@ bases = ['A', 'C', 'G', 'T']
 
 
 # ignoring difference in homopolymeric and non-homopolymeric regions
-def add_error(sequence, error):
+def add_error(sequence):
+    error = config[data]["sequencing_error"]
     i = 0
     insertions = 0
     while i < (len(sequence)):
@@ -54,46 +55,30 @@ def add_mutation(sequence, mutation_rate, longest=False):
     insertions = 0
     snp_positions = []
     while i < (len(sequence)):
+
         if uniform(0, 1) < mutation_rate:
+
             snp_positions.append(i)
-
-            # TODO reverte from
-            # bases_to_choose_from = []
-            # for base in bases:
-            #     if base != sequence[i]:
-            #         bases_to_choose_from.append(base)
-            #
-            # replacement_base = choice(bases_to_choose_from)
-            # sequence = sequence[:i] + replacement_base + sequence[i + 1:]
-
-            # TODO till here
-            if longest:
-                bases_to_choose_from = []
-                for base in bases:
-                    if base != sequence[i]:
-                        bases_to_choose_from.append(base)
-            else:
-                bases_to_choose_from = bases
-
-            replacement_base = choice(bases_to_choose_from)
-
+            bases_to_choose_from = []
+            for base in bases:
+                if base != sequence[i]:
+                    bases_to_choose_from.append(base)
             # deletion
-            if sequence[i] == replacement_base:
+            if not longest and uniform(0, 1) < 0.0175:
                 sequence = sequence[:i] + '-' + sequence[i + 1:]
-                # insertions -= 1
                 continue
+
             # replacement
             else:
+                replacement_base = choice(bases_to_choose_from)
                 sequence = sequence[:i] + replacement_base + sequence[i + 1:]
             # sequence = sequence[:i] + replacement_base + sequence[i + 1:]
         i += 1
-    print(sequence)
     return sequence, snp_positions
 
 
 # cut original haplotype in reads of certain length, creating at least amount reads
 def cut_into_reads(dna, length, coverage, name_of_strain):
-    error = 0.00473  # 454 error
     dna_reads = []
     counter = 0
     for _ in range(2 * coverage):
@@ -104,14 +89,14 @@ def cut_into_reads(dna, length, coverage, name_of_strain):
         prov_rna_reads = []
         # go through rna and cut it into reads
         while last_index < len(dna):
-            read = add_error(dna[first_index:last_index], error)
+            read = add_error(dna[first_index:last_index])
             # make read fastq
             dna_reads.append(
                 '@c' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
             counter += 1
             first_index = last_index
             last_index += length + int(np.random.normal(0, length * 0.05, 1)[0])
-        read = add_error(dna[first_index:len(dna)], error)
+        read = add_error(dna[first_index:len(dna)])
         # make read fastq
         dna_reads.append('@c' + name_of_strain + '\n' + read + '\n+\n' + ('+' * len(read)))
         counter += 1
@@ -182,7 +167,7 @@ def create_reference(length, number_of_strains):
 
 
 # create reads
-if __name__ == '__main__':
+def create_data():
     if data != 'created':
         print(f'{ColorCoding.WARNING}Set data to created in config{ColorCoding.ENDC}')
         exit(-1)
@@ -211,5 +196,7 @@ if __name__ == '__main__':
             reads.extend(
                 cut_into_reads(dna, read_length, coverage, name_of_strain))
         shuffle(reads)
-        save_text(config[data]['reads_path'] + '_' + str(config[data]['n_clusters']) + '.fastq', '\n'.join(reads))
-    print('data created')
+        save_text(config['created']['reads_path'] + '_' + str(config[data]['n_clusters']) + '_' + str(
+            config[data]['coverage']) + '_' + str(config[data]['read_length']) + '_' + str(
+            config[data]['sequencing_error']) + '.fastq', '\n'.join(reads))
+    print('Data created')

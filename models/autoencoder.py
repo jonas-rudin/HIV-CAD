@@ -12,7 +12,6 @@ data = config['data']
 def get_autoencoder_key_points(input_shape):
     # input layer
     base_filter = 32
-    print(input_shape)
     model_input = Input(
         shape=(input_shape[0], input_shape[1], input_shape[2]), name='encoder_Input_0')
     # shape=(input_shape[0], input_shape[1], input_shape[2]), batch_size=batch_size, name='encoder_Input_0')
@@ -48,7 +47,7 @@ def get_autoencoder_key_points(input_shape):
     encoder_flatten_4 = Flatten(name='encoder_Flatten_4')(encoder_dropout_3)
     # 5. layer
     # TODO replace all others
-    latent_space = Dense(units=int(np.ceil(input_shape[0] / 2)), name='encoder_Dense_5')(
+    latent_space = Dense(units=int(np.ceil(input_shape[0] / 4)), name='encoder_Dense_5')(
         encoder_flatten_4)
 
     decoder_dense_1 = Dense(units=base_filter * 4 * input_shape[0], name='decoder_Dense_1')(latent_space)
