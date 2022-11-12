@@ -288,6 +288,7 @@ def encode_fasta():
     print('reading file: REF.fasta')
     # read file line by line and one hot encode sequences
     global snps_index
+
     if data == 'created':
         if len(snps_index) == 0:
             with open(config[data]['snp_positions'] + '_' + str(config[data]['n_clusters']) + '.txt', 'r') as fp:
@@ -306,6 +307,13 @@ def encode_fasta():
         save_tensor_file(config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']),
                          one_hot_encoded_reads_tensor)
     else:
+        snps_index = []
+        with open(config[data]['global_snp_positions'] + '.txt', 'r') as fp:
+            lines = fp.readlines()
+        for line in lines:
+            snps_index.append(int(line[:-1]))
+
+        print(snps_index)
         with open(config[data]['aligned_ref_path'] + '.fasta') as file:
             for line in file:
                 if line[0] != '>':
@@ -322,11 +330,6 @@ def encode_fasta():
 
 
 def decode(encoded_sequences, info, ref=False):
-    global snps_index
-    with open(config[data]['global_snp_positions'] + '.txt', 'r') as fp:
-        lines = fp.readlines()
-    for line in lines:
-        snps_index.append(int(line[:-1]))
     decoded_sequences = []
     for i in range(len(encoded_sequences)):
         decoded_sequences.append('>' + str(i))
