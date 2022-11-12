@@ -1,61 +1,92 @@
-# HIV Clustering Convolutional Autoencoder
+# HIV Convolutional Autoencoder with Clustering
 
-HIV Haplotype Inference Using a Convolutional Auto-Encoder
+Viruses such as HIV with a high mutation rate tend to build drug resisting strains. Thereby a patient can simultaneously
+be the host of multiple HIV strains. Detecting the different haplotypes of the strains is crucial for the treatment of
+the patient. The genomics sequences of the viruses are obtained using high throughput sequencing which provides short
+base sequences originating from random locations all over the original sequence. Reconstructing the haplotypes given
+these sequences poses a difficult problem since the data is oversampled and two sequences do not necessarily overlap,
+making it a non-conventional clustering problem. To solve this problem, we built a framework using a convolutional
+autoencoder using clustering on the learned feature space to reconstruct viral haplotypes. The network is tested with
+synthetic and experimental HIV sequencing data of which it is able to perfectly reconstruct 7 out of 13 HIV genes.
 
 ## Software Requirements
 
-- python 3.8
-- tensorflow 2.9
-- yaml
-- h5py
-- sklearn
+### main program
 
+- python v3.8
+- tensorflow v2.4
+- tensorflow v2.9 if run on Apple M1
+- numpy v1.22
+- scikit-learn v0.22
+
+### data preparation
 
 - bwa
 - samtools
-- seqtk
-
-
-- SPAdes 3.12 (for de novo alignment)
 
 ## How to run it
 
-## Improvements
+### synthetic sequencing data
 
-- more in matrix not text
-- use CUDA for matrix calculations
+check config file:
 
-## Questions
+set:
 
-[//]: # (- de novo macht kei sinn mit MEC teste odr?)
+- data: created
+- pooling: False or True
 
-- l/4 -> check SNP rate -> align and compare 5 strains (eg HD)
-- clean data beforehand? remove short reads? no
-- remove no interesting (no SNPs)
-- might not work for too many cluster => test with generated data
-- small batch size problem?
-- what is c++ file doing?
-- try chi's approach
-- check nn parameter!!!!
-- check autoencoder bach_size on input vs on training
+in the created section set:
 
-## TODO
+- haplotype_length
+- batch_size
+- read_length
+- sequencing_error
+- threshold
+- n_clusters
+- coverage
 
-- adapt CPR for shorter version of 454 for example
+for example as:
 
-- align sequences and get difference of
-- look at chi's solution possible runtime improvement
-- work with fake data -> create this data
-- write to cluster of uni basel
-- Roth schreiben -> antworten
-- Try de nove in the begining for alignment => see if works as ref
-- 3.70GHz Intel i7-8700K processor, 2 NVIDIA GeForce GTX 1080Ti computer graphics cards and 32GB RAM.
+- haplotype_length: 1000
+- batch_size: 500
+- read_length: 250
+- sequencing_error: 0.00473
+- threshold: 0
+- n_clusters: 3
+- coverage: 1000
 
-# TODO text
+If you want to simulate Illumina reads from 3 strains with a coverage of 1000
 
-- measure time
-- limitations -> no new alignment (or maybe do de nove first -> align and see?)
-- illumina vs 454 better error rate but less data -> data overweights here? maybe?
-- filter data might make it to rough for distant mutations
+Run the program:
 
-ssh rudjon00@dmi-wheatstone.dmi.unibas.ch
+1. python main.py
+
+### experimental HIV-1 sequencing data
+
+Check config file:
+
+set:
+
+- data: experimental
+- pooling: False or True
+
+in the experimental section set:
+
+choose:
+
+- cleaned: True or False
+
+if True you only net to choose the gene again, the rest of the data can be left as it is. (check that source is set to
+Illumina)
+
+if False you have to set:
+
+- source: Illumina or 454/Roche depending on the data
+- reads_path: path to the read file (FASTA format)
+
+Then proceed by uncommenting the gene you want to test
+
+Run the program:
+
+1. python prepare_data.py
+2. python main.py

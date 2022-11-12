@@ -28,16 +28,14 @@ print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 if __name__ == '__main__':
 
-    print(tf.keras.backend.floatx())
-    # TODO print config and info
     print('Python version: {}.{}.{}'.format(sys.version_info[0], sys.version_info[1], sys.version_info[2]))
     print('Tensorflow version: {}'.format(tf.__version__))
     print('Numpy version: {}'.format(np.version.version))
     print(f'Working with {ColorCoding.OKGREEN}{data}{ColorCoding.ENDC} reads')
-    if data == 'per_gene':
+    if data == 'experimental':
         name = config[data]['name']
         print(f'Looking at gene {ColorCoding.OKGREEN}{name}{ColorCoding.ENDC}')
-    repetitions = 10
+    repetitions = 1
     if data == 'created':
         NOR = []
         repetitions = 10
@@ -76,11 +74,11 @@ if __name__ == '__main__':
 
         # create autoencoder
 
-        pooling = ' pooling' if config[data]['pooling'] else 'out pooling';
+        pooling = ' pooling' if config['pooling'] else 'out pooling';
         print(f'{ColorCoding.OKGREEN}Model build with{pooling}{ColorCoding.ENDC}')
         # with distribution_strategy.scope():
         print(shape)
-        if config[data]['pooling']:
+        if config['pooling']:
             model_input, latent_space, decoder_output = get_autoencoder_key_points_with_pooling(shape[1:])
         else:
             model_input, latent_space, decoder_output = get_autoencoder_key_points(shape[1:])
@@ -91,7 +89,6 @@ if __name__ == '__main__':
         autoencoder = Model(inputs=model_input, outputs=decoder_output, name='autoencoder')
         autoencoder.compile(optimizer='adam', loss=MeanSquaredError())
         # autoencoder.optimizer.lr.assign(0.001)
-        # TODO delete following two lines
         autoencoder.build(input_shape=shape)
         # autoencoder.summary()
 
@@ -118,7 +115,6 @@ if __name__ == '__main__':
         # cae_model.optimizer.lr.assign(0.001)
 
         # train autoencoder
-        # if False:
         if config['load'] and not data == 'created' and exists(config[data]['weights_path'] + path + '.index'):
             print(f'{ColorCoding.OKGREEN}Loading weights{ColorCoding.ENDC}')
             autoencoder.load_weights(config[data]['weights_path'] + path)
@@ -139,7 +135,6 @@ if __name__ == '__main__':
         prediction_for_kmeans_training = encoder.predict(dataset, verbose=verbose)
         repetitions = 1
 
-        # if data == 'created':
         autoencoder.load_weights(config[data]['weights_path'] + path)
         kmeans_rep = 10
         best_mec_result = 0
@@ -170,7 +165,6 @@ if __name__ == '__main__':
 
             consensus_sequences = majority_voting.align_reads_per_cluster(one_hot_encoded_reads,
                                                                           predicted_clusters, n_clusters)
-            # decoded_sequences = one_hot.decode(consensus_sequences)
 
             new_mec_result = performance.minimum_error_correction(one_hot_encoded_reads, consensus_sequences)
             print('new mec result', new_mec_result)
@@ -246,12 +240,10 @@ if __name__ == '__main__':
                         threshold = reads_of_cluster_n.shape[1] / 2
                         if data == 'created':
                             threshold = config[data]['threshold']
-                        # if clustered_reads_sum[j].sum(axis=0) != 0:
                         if clustered_reads_sum[j].sum(axis=0) > threshold:
                             np.argmax(clustered_reads_sum[j])
                             consensus_sequence[j, np.argmax(clustered_reads_sum[j])] = 1
                     new_consensus_sequences.append(consensus_sequence)
-                    # print(new_consensus_sequences)
 
             consensus_sequences = new_consensus_sequences.copy()
             old_mec_result = new_mec_result
@@ -271,7 +263,7 @@ if __name__ == '__main__':
         print('final CPR (reversed):', np.round(100 * cpr, 1))
         print('final min_indexes (reversed):', min_indexes)
 
-        if data == 'per_gene':
+        if data == 'experimental':
             name_of_reference_strains = ['HXB2', '89.6', 'JRCSF', 'NL43', 'YU2']
             print('Number of reads per cluster')
             for i in range(5):
@@ -297,7 +289,6 @@ if __name__ == '__main__':
             print('CPR:', np.round(100 * sum(CPR) / len(CPR), 1))
             print('CPR_r:', str(np.round(100 * sum(CPR_reversed) / len(CPR_reversed), 1)) + '/' + str(
                 np.round(100 * CPR_reversed[best_mec_index], 1)))
-            # print('zero:', np.round(zero_counts[best_mec_index], 1))
             print('average_sim:', np.round(sum(similarity_scores) / len(similarity_scores), 1))
             print('sim:', similarity_scores)
         print('-----------------------------------------')

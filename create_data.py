@@ -49,7 +49,6 @@ def add_error(sequence):
 
 
 def add_mutation(sequence, mutation_rate, longest=False):
-    print(sequence)
     # TODO  -> safe correctly for data preparation
     i = 0
     insertions = 0
@@ -110,14 +109,12 @@ def create_reference(length, number_of_strains):
         og_file = open(config[data]['og_path'])
         lines = og_file.readlines()
         og_strain = lines[1]
-        print(og_strain)
     else:
         og_strain = ''
         for _ in range(length):
             og_strain += choice(bases)
         save_text(config[data]['og_path'], '>OG\n' + og_strain)
 
-    # snp_frequency = 0.0778 / 5
     snp_frequency = 0.1 / 5
     mutated_strains = []
     if exists(config[data]['ref_path'] + '_' + str(number_of_strains) + '.fasta'):
@@ -139,18 +136,12 @@ def create_reference(length, number_of_strains):
             aligned_mutated_strains.append(sequence)
             combined_snp_positions.extend(snp_positions)
         all_mutated_strains = [longest] + mutated_strains
-        print(*all_mutated_strains, sep="\n")
-        print('-----------------------------------------------')
         all_aligned_mutated_strains = [longest] + aligned_mutated_strains
-        print(*all_aligned_mutated_strains, sep="\n")
-        # exit(-1)
         fasta_encoded = ''
         aligned_fasta_encoded = ''
         for i in range(len(all_mutated_strains)):
             fasta_encoded += '>' + str(i) + '\n' + all_mutated_strains[i] + '\n'
             aligned_fasta_encoded += '>' + str(i) + '\n' + all_aligned_mutated_strains[i] + '\n'
-        # longest = max(mutated_strains, key=len)
-        # index = mutated_strains.index(longest)
         save_text(config[data]['ref_path'] + '_' + str(number_of_strains) + '.fasta', fasta_encoded[:-1])
         save_text(config[data]['aligned_ref_path'] + '_' + str(number_of_strains) + '.fasta',
                   aligned_fasta_encoded[:-1])
@@ -162,7 +153,6 @@ def create_reference(length, number_of_strains):
         with open(config[data]['snp_positions'] + '_' + str(number_of_strains) + '.txt', 'w') as fp:
             for position in combined_snp_positions:
                 fp.write("%s\n" % position)
-            print(combined_snp_positions)
     return og_strain, mutated_strains, longest
 
 
@@ -188,11 +178,7 @@ def create_data():
             print('Creating reads from strain:', name_of_strain)
             # create reads
             # add variation in amount of reads per strain
-            # min_number_of_reads = min_number_of_reads_per_strain + min_number_of_reads_per_strain * uniform(-0.05, 0.05)
-            dna = (f.readline()[:-1])  # .replace('-', '')
-            # reads.extend(
-            #     cut_into_reads(dna, read_length, min_number_of_reads, name_of_strain))
-
+            dna = (f.readline()[:-1])
             reads.extend(
                 cut_into_reads(dna, read_length, coverage, name_of_strain))
         shuffle(reads)

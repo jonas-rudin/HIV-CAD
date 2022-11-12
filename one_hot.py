@@ -67,13 +67,6 @@ if data != 'created':
         snps_index.append(int(line[:-1]))
 
 
-# elif data != 'created':
-#     with open(config[data]['snp_positions'], 'r') as fp:
-#         lines = fp.readlines()
-#     for line in lines:
-#         snps_index.append(int(line[:-1]))
-
-
 def switcher(base):
     return {
         'A': 0,
@@ -114,7 +107,6 @@ def encode_read(position, cigar, read, length):
 
     else:
         adjusted_read = read
-
     # encode according to switcher
     switched_read = []
     for base in adjusted_read:
@@ -239,7 +231,7 @@ def encode_sam():
         save_tensor_file(config[data]['one_hot_path'] + path,
                          one_hot_encoded_snp_tensor)
         print('Reads are one hot encoded and saved.')
-    elif data == 'per_gene':
+    elif data == 'experimental':
         if config[data]['cleaned']:
             counter = 0
             with open(config[data]['reads']) as file:
@@ -290,28 +282,6 @@ def encode_sam():
         save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_reads_tensor)
         print('Reads are one hot encoded and saved.')
 
-    else:
-        with open(config[data]['mapped_reads_path'] + '.sam') as file:
-            counter = 0
-            for line in file:
-                # -1 because of sam numbering
-                pos = int(line.split('\t')[3]) - 1
-                one_hot_encoded_read_snps = encode_read(pos, line.split('\t')[5], line.split('\t')[9],
-                                                        config[data]['haplotype_length'])
-
-                if one_hot_encoded_read_snps is not None:
-                    one_hot_encoded_snps.append(one_hot_encoded_read_snps)
-
-                # print progress
-                counter += 1
-                if counter % 25000 == 0:
-                    print(counter)
-        one_hot_encoded_snp_tensor = tf.expand_dims(tf.convert_to_tensor(one_hot_encoded_snps), axis=3)
-
-        # save
-        save_tensor_file(config[data]['one_hot_path'], one_hot_encoded_snp_tensor)
-        print('Reads are one hot encoded and saved.')
-
 
 def encode_fasta():
     one_hot_encoded_sequences = []
@@ -352,6 +322,11 @@ def encode_fasta():
 
 
 def decode(encoded_sequences, info, ref=False):
+    global snps_index
+    with open(config[data]['global_snp_positions'] + '.txt', 'r') as fp:
+        lines = fp.readlines()
+    for line in lines:
+        snps_index.append(int(line[:-1]))
     decoded_sequences = []
     for i in range(len(encoded_sequences)):
         decoded_sequences.append('>' + str(i))

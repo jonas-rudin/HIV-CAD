@@ -1,152 +1,69 @@
-# TODO create clear structure
-# CAD
-reads_file_path: "../Data/454/454.fasta"
-haplotype_file_path: "./data/reference//REF.fasta"
-# general
-name: "HIV_CAD"
-save: True
-load: True
-data: created
-# illumina, 454, per_gene or created
-#data: created
-number_of_spots: 3000
-max_read_length: 1006 #9721 # length of HBX2, 454
-#haplotype_length: 9850 # length of HBX2 # adapted for positions in the back
-haplotype_length: 1000 # length of HBX2
-#max_read_length: 252
-max_created_read_length: 250
-n_clusters: 5
-verbose: 0 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress
-max_cluster: 10
-
-
-number_of_reads_per_file: 1
-# create Data
-
-
-# alignment
-min_alignment_score: 60
-min_read_length: 150
-batch_size: 100
-
-# path
-hxb2_path: ./data/reference/hxb2.fasta
-#ref_path: ./data/reference/REF
-ref_path: ./data/reference/REF_aligned
-
-#created:
-#  reads_path: ./data/created/reads
-#  one_hot_path: ./data/created/encoded_reads
-#  hxb2_path: ./data/created/reference/hxb2.fasta
-#  ref_path: ./data/created/reference/REF.fasta
-#  cluster_path: ./results/created/clusters/
-#  aligned_path: ./results/created/aligned/
-
-454:
-  reads_path: ./data/454
-  mapped_reads_path: ./data/454_mapped
-  #  one_hot_path: ./data/454_encoded_reads
-  one_hot_path: ./data/454_encoded_snps
-  #  one_hot_path: ./data/454/encoded/
-  cluster_path: ./results/clusters/
-  aligned_path: ./results/aligned/
-  autoencoder_weights_path: ./results/models/autoencoder_weights
-  output_path: ./results/454_output
-  weights_path: ./results/models/454_weights_snps
-  ref_path: ./data/reference/REF
-  aligned_ref_path: ./data/reference/aligned_REF
-  unaligned_ref_path: ./data/reference/unaligned_454_REF
-  number_of_batches: 100000
-  batch_size: 500
-  #  haplotype_length: 5000
-  #  haplotype_length: 4860
-  haplotype_length: 9721
-  #  haplotype_length: 2432
-  #  centroids_name: centroids
-  haplotype_start: 789
-  haplotype_end: 1186
-  centroids_name: centroids_snp
-  pooling: False
-  SNP_pos: ./data/454_SNP_pos
-  n_clusters: 5
-  snp_positions: ./data/reference/snp_positions.txt
-
-illumina:
-  reads_path: ./data/Illumina
-  mapped_reads_path: ./data/illumina_mapped
-  #  one_hot_path: ./data/illumina_encoded_reads
-  one_hot_path: ./data/illumina_encoded_snps
-  #  weights_path: ./results/models/illumina_weights
-  weights_path: ./results/models/illumina_weights_snps
-  output_path: ./results/illumina_output
-  ref_path: ./data/reference/REF
-  aligned_ref_path: ./data/reference/aligned_REF
-  unaligned_ref_path: ./data/reference/unaligned_illumina_REF
-  haplotype_length: 9721
-  number_of_batches: 9721
-  #  centroids_name: illumina_centroids
-  centroids_name: illumina_centroids_snps
-  batch_size: 500
-  n_clusters: 5
-  pooling: False
-  snp_positions: ./data/reference/snp_positions.txt
+# choose data
+data: experimental #created or experimental
+pooling: False # running the network with or qithout pooling
+verbose: 1 # set to 1 if you want tensorflow and Kmeans to give feedback on their progress and 0 otherwise
+save: True  # saving weights and data as files
+load: True  # saving weights and data from files if exists
 
 created:
+  # Change the following parameters
+  haplotype_length: 1000
+  batch_size: 500
+  read_length: 250
+  sequencing_error: 0.00473 #illumina; 0.0043 # 454/Roche
+  threshold: 0
+  n_clusters: 3
+  coverage: 10
+
+  # the following file are created automatically
   reads_path: ./data/created/reads
   mapped_reads_path: ./data/created/mapped
   one_hot_path: ./data/created/encoded_reads
   weights_path: ./results/models/created_weights_dataset
   output_path: ./results/created_output_dataset
-  #  ref_path: ./data/reference/created_REF
   ref_path: ./data/created/reference/REF
   aligned_ref_path: ./data/created/reference/aligned_REF
   og_path: ./data/created/reference/0g_REF.fasta
   longest_path: ./data/created/reference/longest_REF
   snp_positions: ./data/created/reference/snp_positions
-  haplotype_length: 1000
-  number_of_batches: 250
-  batch_size: 500
-  centroids_name: centroids_created
-  pooling: False
-  read_length: 500
-  number_of_strains: 5
-  sequencing_error: 0.0043 # 0.00473
-  threshold: 0
-  n_clusters: 2
-  coverage: 1000
 
 
-per_gene:
-  cleaned: False
-  reads_path: ./data/illumina
+experimental:
+  cleaned: True # if True, takes provided data, if False takes data from reads below
+  source: Illumina #454/Roche
+  reads_path: ./data/illumina # set path of the reads file
+  hxb2_path: ./data/reference/hxb2.fasta # set path to hxb2 reference file
+  ref_path: ./data/reference/REF # set path to reference file
+  aligned_ref_path: ./data/reference/aligned_REF # set path to alilgned reference file
   mapped_reads_path: ./data/illumina_mapped
-
-  ref_path: ./data/reference/REF
-  aligned_ref_path: ./data/reference/aligned_REF
+  global_snp_positions: ./data/reference/snp_positions
   haplotype_length: 9721
-  centroids_name: gene_centroids
-  batch_size: 500
   n_clusters: 5
-  pooling: False
+  batch_size: 500
+
+
+
+  # uncomment the gene you wane run the program on
+
   #  p17
-  #  name: p17
-  #  reads: ./data/per_gene/reads/p17.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_p17
-  #  weights_path: ./results/models/weights_p17
-  #  output_path: ./results/output_p17
-  #  snp_positions: ./data/per_gene/reference/snp_positions_p17.txt
-  #  start: 789
-  #  end: 1186
-  #  start_ref: 0
-  #  end_ref: 47
+  name: p17
+  reads: ./data/experimental/reads/p17.txt
+  one_hot_path: ./data/experimental/encoded_snps_p17
+  weights_path: ./results/models/weights_p17
+  output_path: ./results/output_p17
+  snp_positions: ./data/experimental/reference/snp_positions_p17.txt
+  start: 789
+  end: 1186
+  start_ref: 0
+  end_ref: 47
 
   #  p24
   #  name: p24
-  #  reads: ./data/per_gene/reads/p24.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_p24
+  #  reads: ./data/experimental/reads/p24.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_p24
   #  weights_path: ./results/models/weights_p24
   #  output_path: ./results/output_p24
-  #  snp_positions: ./data/per_gene/reference/snp_positions_p24.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_p24.txt
   #  start: 1185
   #  end: 1879
   #  start_ref: 47
@@ -154,11 +71,11 @@ per_gene:
 
   #  p2p6
   #  name: p2p6
-  #  reads: ./data/per_gene/reads/p2p6.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_p2p6
+  #  reads: ./data/experimental/reads/p2p6.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_p2p6
   #  weights_path: ./results/models/weights_p2p6
   #  output_path: ./results/output_p2p6
-  #  snp_positions: ./data/per_gene/reference/snp_positions_p2p6.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_p2p6.txt
   #  start: 1878
   #  end: 2292
   #  start_ref: 92
@@ -167,11 +84,11 @@ per_gene:
 
   #  PR
   #  name: PR
-  #  reads: ./data/per_gene/reads/PR.txt
-  #  one_hot_path: ./data//per_gene/encoded_snps_PR
+  #  reads: ./data/experimental/reads/PR.txt
+  #  one_hot_path: ./data//experimental/encoded_snps_PR
   #  weights_path: ./results/models/weights_PR
   #  output_path: ./results/output_PR
-  #  snp_positions: ./data/per_gene/reference/snp_positions_PR.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_PR.txt
   #  start: 2252
   #  end: 2550
   #  start_ref: 122
@@ -179,11 +96,11 @@ per_gene:
 
   #  RT
   #  name: RT
-  #  reads: ./data/per_gene/reads/RT.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_RT
+  #  reads: ./data/experimental/reads/RT.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_RT
   #  weights_path: ./results/models/weights_RT
   #  output_path: ./results/output_RT
-  #  snp_positions: ./data/per_gene/reference/snp_positions_RT.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_RT.txt
   #  start: 2549
   #  end: 3870
   #  start_ref: 140
@@ -191,11 +108,11 @@ per_gene:
 
   #  RNase
   #  name: RNase
-  #  reads: ./data/per_gene/reads/RNase.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_RNase
+  #  reads: ./data/experimental/reads/RNase.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_RNase
   #  weights_path: ./results/models/weights_RNase
   #  output_path: ./results/output_RNase
-  #  snp_positions: ./data/per_gene/reference/snp_positions_RNase.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_RNase.txt
   #  start: 3869
   #  end: 4230
   #  start_ref: 227
@@ -203,35 +120,35 @@ per_gene:
 
   #  int
   #  name: int
-  #  reads: ./data/per_gene/reads/int.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_int
+  #  reads: ./data/experimental/reads/int.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_int
   #  weights_path: ./results/models/weights_int
   #  output_path: ./results/output_int
-  #  snp_positions: ./data/per_gene/reference/snp_positions_int.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_int.txt
   #  start: 4229
   #  end: 5096
   #  start_ref: 264
   #  end_ref: 310
 
   #  vif
-  name: vif
-  reads: ./data/per_gene/reads/vif.txt
-  one_hot_path: ./data/per_gene/encoded_snps_vif
-  weights_path: ./results/models/weights_vif
-  output_path: ./results/output_vif
-  snp_positions: ./data/per_gene/reference/snp_positions_vif.txt
-  start: 5040
-  end: 5620
-  start_ref: 308
-  end_ref: 370
+  #  name: vif
+  #  reads: ./data/experimental/reads/vif.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_vif
+  #  weights_path: ./results/models/weights_vif
+  #  output_path: ./results/output_vif
+  #  snp_positions: ./data/experimental/reference/snp_positions_vif.txt
+  #  start: 5040
+  #  end: 5620
+  #  start_ref: 308
+  #  end_ref: 370
 
   #  vpr
   #  name: vpr
-  #  reads: ./data/per_gene/reads/vpr.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_vpr
+  #  reads: ./data/experimental/reads/vpr.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_vpr
   #  weights_path: ./results/models/weights_vpr
   #  output_path: ./results/output_vpr
-  #  snp_positions: ./data/per_gene/reference/snp_positions_vpr.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_vpr.txt
   #  start: 5558
   #  end: 5850
   #  start_ref: 367
@@ -239,11 +156,11 @@ per_gene:
 
   #  vpu
   #  name: vpu
-  #  reads: ./data/per_gene/reads/vpu.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_vpu
+  #  reads: ./data/experimental/reads/vpu.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_vpu
   #  weights_path: ./results/models/weights_vpu
   #  output_path: ./results/output_vpu
-  #  snp_positions: ./data/per_gene/reference/snp_positions_vpu.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_vpu.txt
   #  start: 6061
   #  end: 6310
   #  start_ref: 399
@@ -251,11 +168,11 @@ per_gene:
 
   #  gp120
   #  name: gp120
-  #  reads: ./data/per_gene/reads/gp120.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_gp120
+  #  reads: ./data/experimental/reads/gp120.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_gp120
   #  weights_path: ./results/models/weights_gp120
   #  output_path: ./results/output_vif
-  #  snp_positions: ./data/per_gene/reference/snp_positions_vif.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_vif.txt
   #  start: 6224
   #  end: 7758
   #  start_ref: 423
@@ -263,11 +180,11 @@ per_gene:
 
   #  gp41
   #  name: gp41
-  #  reads: ./data/per_gene/reads/gp41.txt
-  #  one_hot_path: ./data/per_gene/encoded_snps_gp41
+  #  reads: ./data/experimental/reads/gp41.txt
+  #  one_hot_path: ./data/experimental/encoded_snps_gp41
   #  weights_path: ./results/models/weights_gp41
   #  output_path: ./results/output_gp41
-  #  snp_positions: ./data/per_gene/reference/snp_positions_gp41.txt
+  #  snp_positions: ./data/experimental/reference/snp_positions_gp41.txt
   #  start: 7757
   #  end: 8795
   #  start_ref: 638
@@ -275,11 +192,11 @@ per_gene:
 
   #  nef
 #  name: nef
-#  reads: ./data/per_gene/reads/nef.txt
-#  one_hot_path: ./data/per_gene/encoded_snps_nef
+#  reads: ./data/experimental/reads/nef.txt
+#  one_hot_path: ./data/experimental/encoded_snps_nef
 #  weights_path: ./results/models/weights_nef
 #  output_path: ./results/output_nef
-#  snp_positions: ./data/per_gene/reference/snp_positions_nef.txt
+#  snp_positions: ./data/experimental/reference/snp_positions_nef.txt
 #  start: 8796
 #  end: 9417
 #  start_ref: 770

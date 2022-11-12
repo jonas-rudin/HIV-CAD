@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 
+import one_hot
 from helpers.IO import load_tensor_file
 from helpers.config import get_config
 
@@ -30,7 +31,7 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             config[data]['aligned_ref_path'] + '_' + str(config[data]['n_clusters']))
     else:
         reference_sequences = load_tensor_file(config[data]['aligned_ref_path'])
-    if data == 'per_gene':
+    if data == 'experimental':
         prov = []
         for reference_sequence in reference_sequences:
             sequence = list(reference_sequence[config[data]['start_ref']:config[data]['end_ref']])
@@ -41,8 +42,8 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             prov.append(np.array(sequence))
         reference_sequences = np.array(prov)
 
-    # print('\nreference_sequences:\n', one_hot.decode(reference_sequences, info, True))
-    # print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences, info))
+    print('\nreference_sequences:\n', one_hot.decode(reference_sequences, info, True))
+    print('\nconsensus_sequences:\n', one_hot.decode(consensus_sequences, info))
 
     if len(consensus_sequences) != len(reference_sequences):
         print(
@@ -69,7 +70,7 @@ def correct_phasing_rate(consensus_sequences, info='', reverse=False):
             min_indexes = permutation
             min_sum = tmp_sum
 
-    if data == 'per_gene':
+    if data == 'experimental':
         cpr_per_gene_and_strain = np.zeros((len(reference_sequences)))
         name_of_reference_strains = ['HXB2', '89.6', 'JRCSF', 'NL43', 'YU2']
         print('CPR per gene:')

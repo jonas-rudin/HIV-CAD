@@ -11,9 +11,6 @@ def last_majority_vote_alignment(clustered_reads, overall_reads_sum):
     consensus_sequence = np.zeros((clustered_reads.shape[1], 4, 1), dtype=np.int)
     for i in range(clustered_reads_sum.shape[0]):
         if clustered_reads_sum[i].sum(axis=0) != 0:
-            # print(clustered_reads.shape[1] / 16)
-            # print(clustered_reads.shape[1] / 8)
-            # if clustered_reads_sum[i].sum(axis=0) > clustered_reads.shape[1] / 8:
             consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
         elif 2 <= i < clustered_reads_sum.shape[0] - 2:
             sum_of_neighbours = 0
@@ -30,7 +27,6 @@ def last_majority_vote_alignment(clustered_reads, overall_reads_sum):
                             # if multiple are the same -> choose one of them at random
                             max_positions = np.where(overall_reads_sum[i][:] == max(overall_reads_sum[i][:]))[0]
                             consensus_sequence[i, choice(max_positions)] = 1
-        # TODO check what if multiple the same count?
     return consensus_sequence
 
 
@@ -40,7 +36,6 @@ def majority_vote_alignment(clustered_reads, overall_reads_sum):
     consensus_sequence = np.zeros((clustered_reads.shape[1], 4, 1), dtype=np.int)
     for i in range(clustered_reads_sum.shape[0]):
         if clustered_reads_sum[i].sum(axis=0) != 0:
-            # if clustered_reads_sum[i].sum(axis=0) > clustered_reads.shape[1] / 16:
             if len(np.where(clustered_reads_sum[i][:] == np.max(clustered_reads_sum[i][:]))[0]) == 1:
                 consensus_sequence[i, np.argmax(clustered_reads_sum[i])] = 1
             else:
@@ -60,11 +55,6 @@ def majority_vote_alignment(clustered_reads, overall_reads_sum):
 
 def align_reads_per_cluster(reads, predicted_clusters, n_clusters, last=False):
     majority_consensus_sequences = []
-    # predicted_clusters_array = np.array(predicted_clusters)
-    # print(predicted_clusters)
-    # print(predicted_clusters.shape)
-    # print(predicted_clusters_array.shape)
-    # print(predicted_clusters_array)
     reads_sum = reads.sum(axis=0)
     for i in range(n_clusters):
         reads_of_cluster_n = reads[np.where(predicted_clusters == i)[0]]
@@ -73,11 +63,6 @@ def align_reads_per_cluster(reads, predicted_clusters, n_clusters, last=False):
         else:
             majority_consensus_sequences.append(majority_vote_alignment(reads_of_cluster_n, reads_sum))
 
-    # else:
-    #     reads_sum = reads.sum(axis=0)
-    #     for i in range(n_clusters):
-    #         reads_of_cluster_n = reads[np.where(predicted_clusters_array == i)[0]]
-    #         majority_consensus_sequences.append(majority_vote_alignment(reads_of_cluster_n, reads_sum))
     return majority_consensus_sequences
 
 

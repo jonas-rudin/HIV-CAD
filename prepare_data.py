@@ -7,11 +7,11 @@ from helpers.config import get_config
 config = get_config()
 data = config['data']
 
-silence = ''
+silent = ''
 
 
 # if config['verbose'] == 0:
-#     silence = ' >/dev/null 2>&1'
+#     silent = ' >/dev/null 2>&1'
 
 
 def prepare_data():
@@ -26,21 +26,18 @@ def prepare_data():
 
     else:
         read_file = config[data]['reads_path']
-        reference_file = config['hxb2_path']
+        reference_file = config[data]['hxb2_path']
         mapped_reads_file = config[data]['mapped_reads_path']
-    print(read_file)
-    print(reference_file)
-    print(mapped_reads_file)
+
     # index reference file
-    print(reference_file)
-    bwa_index_cmd = 'bwa index -a bwtsw ' + reference_file + silence
+    bwa_index_cmd = 'bwa index -a bwtsw ' + reference_file + silent
     os.system(bwa_index_cmd)
     print('indexed')
-    bwa_mem_cmd = 'bwa mem -t 4 ' + reference_file + ' ' + read_file + '.fastq > ' + read_file + '.sam' + silence
+    bwa_mem_cmd = 'bwa mem -t 4 ' + reference_file + ' ' + read_file + '.fastq > ' + read_file + '.sam' + silent
     os.system(bwa_mem_cmd)
     print('aligned')
 
-    if data == 'illumina' or (data == 'created' and config[data]['read_length']):
+    if config[data]['source'] == 'llumina' or (data == 'created' and config[data]['read_length']):
         remove_low_quality_score_cmd = 'samtools view -Sq 59 -e \'length(seq)>150\' ' + read_file + '.sam > ' + mapped_reads_file + '.sam'
         os.system(remove_low_quality_score_cmd)
         print('only aligned with quality score over 60 and bp length greater than 150')
